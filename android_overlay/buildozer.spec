@@ -23,7 +23,7 @@ version = 1.0.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.1.0,kivymd,plyer,pyjnius,android
+requirements = python3,kivy==2.1.0,kivymd,plyer,pyjnius,android,psutil
 
 # (str) Presplash of the application
 presplash.filename = assets/presplash.png
