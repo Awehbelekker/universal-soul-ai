@@ -1,0 +1,75 @@
+name: Build Universal Soul AI APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libssl-dev libffi-dev libxml2-dev libxslt1-dev libjpeg-dev libpng-dev zlib1g-dev
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install buildozer cython kivy kivymd plyer pyjnius numpy pillow requests
+        
+    - name: Build APK
+      working-directory: ./android_overlay
+      run: |
+        buildozer android debug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: universal-soul-ai-apk
+        path: android_overlay/bin/*.apk
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.0-${{ github.run_number }}
+        name: Universal Soul AI v1.0.0-${{ github.run_number }}
+        body: |
+          🚀 Universal Soul AI - World's First 360° Gesture + Overlay Interface
+          
+          ## 🎯 Revolutionary Features
+          - 🎪 Persistent overlay across all Android apps
+          - 👆 8-direction 360° gesture navigation
+          - 🎙️ "Hey Soul" voice activation
+          - 🧠 Context-aware intelligence
+          - 🔒 100% local processing
+          
+          ## 📱 Installation
+          1. Download the APK below
+          2. Enable "Unknown Sources" on Android
+          3. Install and grant permissions
+          4. Test the revolutionary interface!
+          
+          **This is the world's first 360° gesture + overlay AI system!** 🏆
+        files: android_overlay/bin/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

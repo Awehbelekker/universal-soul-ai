@@ -1,0 +1,99 @@
+{
+  "environment": "development",
+  "debug_mode": true,
+  "feature_flags": {
+    "voice_interface_enabled": true,
+    "multi_agent_orchestration": true,
+    "mobile_optimization": true,
+    "privacy_mode": true,
+    "offline_mode": true,
+    "experimental_features": false
+  },
+  "branding": {
+    "app_name": "ThinkMesh AI",
+    "company_name": "ThinkMesh AI Systems",
+    "tagline": "Your Private AI Companion",
+    "primary_color": "#1976D2",
+    "secondary_color": "#03DAC6",
+    "accent_color": "#FF6B35",
+    "background_color": "#FAFAFA",
+    "surface_color": "#FFFFFF",
+    "error_color": "#B00020",
+    "font_family": "Roboto",
+    "font_size_base": 16,
+    "logo_path": "assets/images/thinkmesh_logo.png",
+    "icon_path": "assets/images/thinkmesh_icon.png"
+  },
+  "hrm": {
+    "model_path": "models/hrm_27m_mobile.gguf",
+    "quantization": "INT4",
+    "max_context_length": 4096,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "top_k": 40,
+    "mobile_optimized": true,
+    "battery_aware": true,
+    "thermal_throttling": true,
+    "memory_limit_mb": 512
+  },
+  "agents": {
+    "max_concurrent_agents": 3,
+    "context_store_size_mb": 100,
+    "agent_timeout_seconds": 30,
+    "orchestrator_enabled": true,
+    "explorer_agents": 1,
+    "coder_agents": 1,
+    "token_budget_multiplier": 3.0,
+    "quality_threshold": 0.95
+  },
+  "voice": {
+    "stt_provider": "deepgram",
+    "tts_provider": "elevenlabs",
+    "vad_provider": "silero",
+    "sample_rate": 16000,
+    "channels": 1,
+    "chunk_size": 1024,
+    "low_latency_mode": true,
+    "noise_suppression": true,
+    "echo_cancellation": true
+  },
+  "local_ai": {
+    "server_port": 8080,
+    "server_host": "127.0.0.1",
+    "auto_model_download": true,
+    "model_cache_size_gb": 5,
+    "quantization_enabled": true,
+    "gpu_acceleration": true,
+    "cpu_threads": 0,
+    "memory_map": true
+  },
+  "data": {
+    "storage_path": "data/thinkmesh",
+    "encryption_enabled": true,
+    "compression_enabled": true,
+    "local_only": true,
+    "cloud_sync_enabled": false,
+    "data_retention_days": 365,
+    "semantic_search_enabled": true,
+    "index_update_interval_hours": 24
+  },
+  "mobile": {
+    "battery_optimization": true,
+    "background_processing": true,
+    "offline_mode": true,
+    "auto_performance_scaling": true,
+    "thermal_monitoring": true,
+    "memory_pressure_handling": true,
+    "wifi_only_sync": true,
+    "cellular_data_limit_mb": 100
+  },
+  "monitoring": {
+    "health_check_interval_seconds": 30,
+    "metrics_collection_enabled": true,
+    "error_reporting_enabled": true,
+    "log_level": "INFO",
+    "log_file_path": "logs/thinkmesh.log",
+    "log_rotation_size_mb": 10,
+    "log_retention_days": 30
+  }
+}
