@@ -27,6 +27,8 @@ jobs:
 
       - name: 🏗️ Build with Buildozer (Android)
         uses: ArtemSBulgakov/buildozer-action@v1
+        env:
+          USER: root
         with:
           workdir: android_overlay
           buildozer_version: stable
