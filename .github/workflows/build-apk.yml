@@ -59,6 +59,11 @@ jobs:
           openjdk-17-jdk \
           wget \
           curl
+        
+        # Verify Git installation
+        git --version
+        which git
+        echo "Git installed at: $(which git)"
           
     - name: Install Python dependencies
       run: |
@@ -158,10 +163,24 @@ jobs:
         export ANDROID_SDK_ROOT=$ANDROID_HOME
         export PATH=$PATH:$ANDROID_HOME/build-tools/34.0.0:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools
         
+        # Verify all required tools are available
+        echo "=== Tool Verification ==="
+        echo "Git version: $(git --version)"
+        echo "Git location: $(which git)"
+        echo "Python version: $(python --version)"
+        echo "Python location: $(which python)"
+        echo "Java version: $(java -version 2>&1 | head -1)"
+        echo "Java location: $(which java)"
+        echo "Current PATH: $PATH"
+        
         # Verify AIDL is accessible
         echo "Checking for AIDL..."
         which aidl || echo "AIDL not in PATH, checking Android SDK..."
         ls -la $ANDROID_HOME/build-tools/34.0.0/aidl || echo "AIDL not found"
+        
+        # Create a simple git config to avoid any git errors
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
         
         # Initialize buildozer if needed
         if [ ! -f buildozer.spec ]; then
