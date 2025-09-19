@@ -1,0 +1,91 @@
+name: Universal Soul AI - Ultra Simple Build
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        
+    - name: Install minimal dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip
+        
+    - name: Install buildozer only
+      run: |
+        pip3 install buildozer
+        
+    - name: Create ultra-simple app
+      run: |
+        mkdir simple_app
+        cd simple_app
+        
+        # Create the simplest possible Kivy app
+        cat > main.py << 'EOF'
+        from kivy.app import App
+        from kivy.uix.button import Button
+
+        class SimpleApp(App):
+            def build(self):
+                return Button(text='Universal Soul AI - Hello World!')
+
+        SimpleApp().run()
+        EOF
+        
+        # Initialize buildozer with defaults
+        buildozer init
+        
+        # Simplify buildozer.spec to absolute minimum
+        cat > buildozer.spec << 'EOF'
+        [app]
+        title = UniversalSoulAI
+        package.name = universalsoulai
+        package.domain = com.universalsoul
+        source.dir = .
+        version = 1.0
+        requirements = python3,kivy
+        
+        [buildozer]
+        log_level = 2
+        
+        android.permissions = INTERNET
+        android.api = 29
+        android.minapi = 21
+        android.ndk = 19b
+        android.sdk = 29
+        android.accept_sdk_license = True
+        EOF
+        
+        echo "Created ultra-simple app:"
+        ls -la
+        cat buildozer.spec
+        
+    - name: Test buildozer
+      run: |
+        cd simple_app
+        buildozer android debug
+        
+    - name: Find result
+      run: |
+        cd simple_app
+        find . -name "*.apk" -type f || echo "No APK found"
+        ls -la bin/ || echo "No bin directory"
+        
+    - name: Upload result
+      uses: actions/upload-artifact@v4
+      with:
+        name: simple-apk
+        path: simple_app/bin/*.apk
+        if-no-files-found: warn
