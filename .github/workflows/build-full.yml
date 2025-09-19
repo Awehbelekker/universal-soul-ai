@@ -189,40 +189,36 @@ jobs:
         fi
         
         # Create comprehensive buildozer.spec for full features
-        cat > buildozer.spec << 'EOF'
-        [app]
-        title = Universal Soul AI
-        package.name = universalsoulai
-        package.domain = com.universalsoul.ai
-        source.dir = .
-        source.include_exts = py,png,jpg,kv,atlas,json,txt,md
-        source.include_patterns = assets/*,core/*,ui/*,demo/*,tests/*
-        version = 1.0.0
-        requirements = python3,kivy==2.1.0,kivymd,plyer,pyjnius,android,pillow,requests,numpy
-        presplash.filename = assets/presplash.png
-        icon.filename = assets/icon.png
-        orientation = portrait
-        fullscreen = 0
+  cat > buildozer.spec << 'EOF'
+  [app]
+  title = Universal Soul AI
+  package.name = universalsoulai
+  package.domain = com.universalsoul.ai
+  source.dir = .
+  source.include_exts = py,png,jpg,kv,atlas,json,txt,md
+  source.include_patterns = assets/*,core/*,ui/*,demo/*,tests/*
+  version = 1.0.0
+  requirements = python3,kivy==2.1.0,kivymd,plyer,pyjnius,android,pillow,requests,numpy
+  presplash.filename = assets/presplash.png
+  icon.filename = assets/icon.png
+  orientation = portrait
+  fullscreen = 0
         
-        [buildozer]
-        log_level = 2
+  # Android-specific settings (must be under [app])
+  android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE,ACCESSIBILITY_SERVICE,BIND_ACCESSIBILITY_SERVICE,DRAW_OVER_OTHER_APPS
+  android.api = 33
+  android.minapi = 23
+  android.ndk = 25b
+  android.sdk = 33
+  android.accept_sdk_license = True
+  android.arch = arm64-v8a
+  android.gradle_dependencies = androidx.core:core:1.8.0, androidx.appcompat:appcompat:1.5.0
+  android.add_src = java/
+  android.add_permissions = android.permission.SYSTEM_ALERT_WINDOW
         
-        android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE,ACCESSIBILITY_SERVICE,BIND_ACCESSIBILITY_SERVICE,DRAW_OVER_OTHER_APPS
-        android.api = 33
-        android.minapi = 23
-        android.ndk = 25b
-        android.sdk = 33
-        android.accept_sdk_license = True
-        android.arch = arm64-v8a
-        
-        android.gradle_dependencies = androidx.core:core:1.8.0, androidx.appcompat:appcompat:1.5.0
-        android.add_src = java/
-        android.add_permissions = android.permission.SYSTEM_ALERT_WINDOW
-        
-        [app:android.manifest]
-        android:hardwareAccelerated = true
-        android:largeHeap = true
-        EOF
+  [buildozer]
+  log_level = 2
+  EOF
         
         echo "✅ Created comprehensive buildozer.spec"
         
