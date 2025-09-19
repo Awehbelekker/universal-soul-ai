@@ -1,0 +1,111 @@
+name: 🔧 Universal Soul AI - Minimal APK Build
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (debug/release)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: ☕ Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: 📦 Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            python3-dev \
+            python3-pip \
+            python3-venv \
+            libssl-dev \
+            libffi-dev \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libtinfo6 \
+            zip \
+            unzip \
+            wget \
+            curl
+
+      - name: 🛠️ Install Python dependencies with venv
+        run: |
+          python3 -m venv buildenv
+          source buildenv/bin/activate
+          pip install --upgrade pip setuptools wheel
+          pip install buildozer==1.5.0
+          pip install cython==0.29.33
+          pip install kivy==2.1.0
+
+      - name: 🏗️ Build APK
+        working-directory: android_overlay
+        run: |
+          source ../buildenv/bin/activate
+          
+          BUILD_TYPE="${{ github.event.inputs.build_type }}"
+          if [ -z "$BUILD_TYPE" ]; then BUILD_TYPE=debug; fi
+          echo "Using build type: $BUILD_TYPE"
+          
+          echo "📋 Current directory contents:"
+          ls -la
+          
+          echo "🔧 Buildozer version:"
+          buildozer version
+          
+          echo "🚀 Starting Android $BUILD_TYPE build..."
+          buildozer android $BUILD_TYPE --verbose
+
+      - name: 📦 Upload APK artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-soul-ai-minimal-${{ github.event.inputs.build_type || 'debug' }}-apk
+          path: |
+            android_overlay/bin/*.apk
+            android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
+            android_overlay/.buildozer/android/logs/**
+          retention-days: 14
+
+      - name: 📋 Show build results
+        if: always()
+        working-directory: android_overlay
+        run: |
+          echo "📁 Contents of bin directory:"
+          ls -la bin/ || echo "No bin directory found"
+          
+          echo "📁 Contents of .buildozer:"
+          find .buildozer -name "*.apk" -type f -exec ls -lh {} \; || echo "No APK files found in .buildozer"
+          
+          echo "📋 Build logs:"
+          find .buildozer -name "*.log" -type f -exec echo "=== {} ===" \; -exec tail -20 {} \; || echo "No log files found"
