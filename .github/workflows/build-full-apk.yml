@@ -31,7 +31,10 @@ jobs:
           workdir: android_overlay
           buildozer_version: stable
           command: |
-            buildozer android ${{ github.event.inputs.build_type }} --verbose
+            BUILD_TYPE="${{ github.event.inputs.build_type }}"
+            if [ -z "$BUILD_TYPE" ]; then BUILD_TYPE=debug; fi
+            echo "Using build type: $BUILD_TYPE"
+            buildozer android "$BUILD_TYPE" --verbose
 
       - name: 📦 Upload APK artifact
         if: always()
