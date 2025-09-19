@@ -1,0 +1,99 @@
+name: Universal Soul AI - Minimal APK Build
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        
+    - name: Set up JDK 8
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '8'
+        
+    - name: Install basic system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git python3-pip python3-setuptools
+        
+    - name: Install buildozer
+      run: |
+        pip3 install --upgrade pip
+        pip3 install buildozer
+        pip3 install cython==0.29.33
+        
+    - name: Verify installations
+      run: |
+        echo "Python version:"
+        python3 --version
+        echo "Pip version:"
+        pip3 --version
+        echo "Git version:"
+        git --version
+        echo "Java version:"
+        java -version
+        echo "Buildozer version:"
+        buildozer version
+        
+    - name: Create minimal app structure
+      run: |
+        mkdir -p minimal_app
+        cd minimal_app
+        
+        # Create minimal main.py
+        cat > main.py << 'EOF'
+from kivy.app import App
+from kivy.uix.label import Label
+
+class UniversalSoulApp(App):
+    def build(self):
+        return Label(text='Universal Soul AI\nMinimal Version', 
+                    font_size=20, 
+                    halign='center')
+
+if __name__ == '__main__':
+    UniversalSoulApp().run()
+EOF
+        
+        # Initialize buildozer
+        buildozer init
+        
+        # Update buildozer.spec with minimal requirements
+        sed -i 's/requirements = .*/requirements = python3,kivy/' buildozer.spec
+        sed -i 's/package.name = .*/package.name = universalsoulai/' buildozer.spec
+        sed -i 's/package.domain = .*/package.domain = com.universalsoul/' buildozer.spec
+        
+        echo "Created minimal app structure:"
+        ls -la
+        
+    - name: Build minimal APK
+      run: |
+        cd minimal_app
+        echo "Starting buildozer build..."
+        buildozer android debug --verbose
+        
+    - name: Find APK
+      run: |
+        cd minimal_app
+        echo "Searching for APK files..."
+        find . -name "*.apk" -type f -exec ls -lh {} \;
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: universal-soul-ai-minimal-apk
+        path: minimal_app/bin/*.apk
+        if-no-files-found: warn
