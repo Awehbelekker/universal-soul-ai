@@ -59,10 +59,11 @@ After the build completes:
 
 ### Step 4: Trigger Build Manually
 1. Go to **Actions** tab in your repository
-2. Select **"Universal Soul AI - Ultra Simple Build"**
+2. Select **"🚀 Universal Soul AI - Simple Build"** (the new workflow)
 3. Click **"Run workflow"**
-4. Choose branch: **main**
-5. Click **"Run workflow"**
+4. Choose **Build Type**: `minimal`
+5. Choose **Android API**: `29`
+6. Click **"Run workflow"**
 
 ## Debugging in GitHub Interface
 
