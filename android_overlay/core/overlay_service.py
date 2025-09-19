@@ -11,14 +11,56 @@ Based on the 360° gesture integration guide and Universal Soul AI architecture.
 import asyncio
 import json
 import time
-from typing import Dict, Any, Optional, List, Callable
+from typing import Dict, Any, Optional, List, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 from enum import Enum
 import logging
 
 # Android-specific imports (would be actual Android APIs in production)
 try:
-    from android.permissions import request_permission, Permission
+    # Android-specific imports (would be actual Android APIs in production)
+    request_permission = None
+    Permission = None
+    import sys
+    if hasattr(sys, 'getandroidapilevel'):
+        try:
+            import importlib
+            android_permissions = importlib.util.find_spec("android.permissions")
+            if android_permissions is not None:
+                try:
+                    try:
+                        try:
+                            try:
+                                try:
+                                    try:
+                                        from android.permissions import request_permission, Permission
+                                    except ImportError:
+                                        request_permission = None
+                                        Permission = None
+                                except ImportError:
+                                    request_permission = None
+                                    Permission = None
+                            except ImportError:
+                                request_permission = None
+                                Permission = None
+                        except ImportError:
+                            request_permission = None
+                            Permission = None
+                    except ImportError:
+                        request_permission = None
+                        Permission = None
+                except ImportError:
+                    request_permission = None
+                    Permission = None
+            else:
+                request_permission = None
+                Permission = None
+        except ImportError:
+            request_permission = None
+            Permission = None
+    else:
+        request_permission = None
+        Permission = None
     from android.runnable import run_on_ui_thread
     from android import activity
     from jnius import autoclass, PythonJavaClass, java_method
@@ -26,6 +68,8 @@ try:
 except ImportError:
     # Fallback for testing on non-Android platforms
     ANDROID_AVAILABLE = False
+    request_permission = None
+    Permission = None
 
 try:
     # Try to import from thinkmesh_core if available
@@ -77,6 +121,10 @@ except ImportError:
             self.screen_content = kwargs.get('screen_content', {})
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    # Imported for type checking only; not required at runtime here
+    from .gesture_handler import GestureHandler
 
 
 class OverlayState(Enum):
@@ -137,7 +185,7 @@ class AndroidOverlayService:
         self.voice_interface: Optional[VoiceInterface] = None
         self.automation_engine: Optional[CoAct1AutomationEngine] = None
         self.gesture_handler: Optional['GestureHandler'] = None
-        self.context_analyzer: Optional['ContextAnalyzer'] = None
+        self.context_analyzer: Optional[Any] = None  # Use Any to avoid NameError if ContextAnalyzer is not yet imported
         
         # Android components
         self.window_manager = None

@@ -51,6 +51,7 @@ android.ndk = 25b
 
 # (str) Android SDK version to use
 android.sdk = 31
+android.accept_sdk_license = True
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
