@@ -1,0 +1,335 @@
+name: Universal Soul AI - Full Featured APK Build
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+
+jobs:
+  build-full:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          python3-dev \
+          python3-pip \
+          python3-venv \
+          libssl-dev \
+          libffi-dev \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo6 \
+          zip \
+          unzip \
+          wget \
+          curl \
+          ffmpeg \
+          libsdl2-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-ttf-dev \
+          libportmidi-dev \
+          libswscale-dev \
+          libavformat-dev \
+          libavcodec-dev \
+          libgstreamer1.0-dev \
+          gstreamer1.0-plugins-base \
+          gstreamer1.0-plugins-good \
+          gstreamer1.0-plugins-bad \
+          gstreamer1.0-plugins-ugly \
+          gstreamer1.0-libav
+          
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install buildozer
+        pip install cython==0.29.33
+        pip install kivy[base]==2.1.0
+        pip install kivymd
+        pip install plyer
+        pip install pyjnius
+        pip install pillow
+        pip install requests
+        pip install numpy
+        # Install additional dependencies for full features
+        pip install websockets || true
+        pip install opencv-python-headless || true
+        
+    - name: Cache Buildozer global directory
+      uses: actions/cache@v3
+      with:
+        path: .buildozer_global
+        key: buildozer-global-${{ hashFiles('android_overlay/buildozer.spec') }}
+        
+    - name: Cache Buildozer directory
+      uses: actions/cache@v3
+      with:
+        path: android_overlay/.buildozer
+        key: buildozer-${{ hashFiles('android_overlay/buildozer.spec') }}
+        
+    - name: Prepare full Universal Soul AI app
+      working-directory: android_overlay
+      run: |
+        # Create assets directory
+        mkdir -p assets
+        
+        # Generate high-quality app icon
+        python3 -c "
+        from PIL import Image, ImageDraw, ImageFont
+        import os
+        
+        # Create modern app icon
+        size = 512
+        icon = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(icon)
+        
+        # Gradient background
+        for i in range(size):
+            alpha = int(255 * (1 - i / size))
+            color = (33 + i//4, 150 + i//8, 243, 255)
+            draw.ellipse([i//4, i//4, size-i//4, size-i//4], fill=color)
+        
+        # Central circle
+        center = size // 2
+        radius = size // 3
+        draw.ellipse([center-radius, center-radius, center+radius, center+radius], 
+                    fill=(255, 255, 255, 240))
+        
+        # AI symbol
+        draw.ellipse([center-radius//2, center-radius//2, center+radius//2, center+radius//2], 
+                    fill=(33, 150, 243, 255))
+        
+        icon.save('assets/icon.png')
+        print('✅ Generated high-quality app icon')
+        
+        # Create splash screen
+        splash = Image.new('RGB', (1080, 1920), (15, 15, 15))
+        draw = ImageDraw.Draw(splash)
+        
+        # Gradient background
+        for y in range(1920):
+            intensity = int(50 + (y / 1920) * 100)
+            color = (intensity//3, intensity//2, intensity)
+            draw.line([(0, y), (1080, y)], fill=color)
+        
+        # Central logo area
+        center_x, center_y = 540, 960
+        logo_size = 300
+        draw.ellipse([center_x-logo_size//2, center_y-logo_size//2, 
+                     center_x+logo_size//2, center_y+logo_size//2], 
+                    fill=(33, 150, 243, 255))
+        
+        # Inner circle
+        inner_size = logo_size // 2
+        draw.ellipse([center_x-inner_size//2, center_y-inner_size//2, 
+                     center_x+inner_size//2, center_y+inner_size//2], 
+                    fill=(255, 255, 255, 255))
+        
+        splash.save('assets/presplash.png')
+        print('✅ Generated professional splash screen')
+        " || echo "Using fallback asset generation"
+        
+        # Ensure we have assets
+        if [ ! -f assets/icon.png ]; then
+          echo "Creating fallback icon..."
+          python3 -c "
+          from PIL import Image, ImageDraw
+          icon = Image.new('RGBA', (512, 512), (33, 150, 243, 255))
+          draw = ImageDraw.Draw(icon)
+          draw.ellipse([100, 100, 412, 412], fill=(255, 255, 255, 255))
+          icon.save('assets/icon.png')
+          "
+        fi
+        
+        if [ ! -f assets/presplash.png ]; then
+          echo "Creating fallback splash..."
+          python3 -c "
+          from PIL import Image
+          splash = Image.new('RGB', (800, 600), (33, 150, 243))
+          splash.save('assets/presplash.png')
+          "
+        fi
+        
+    - name: Configure buildozer for full build
+      working-directory: android_overlay
+      run: |
+        # Backup original buildozer.spec if it exists
+        if [ -f buildozer.spec ]; then
+          cp buildozer.spec buildozer.spec.backup
+        fi
+        
+        # Create comprehensive buildozer.spec for full features
+        cat > buildozer.spec << 'EOF'
+        [app]
+        title = Universal Soul AI
+        package.name = universalsoulai
+        package.domain = com.universalsoul.ai
+        source.dir = .
+        source.include_exts = py,png,jpg,kv,atlas,json,txt,md
+        source.include_patterns = assets/*,core/*,ui/*,demo/*,tests/*
+        version = 1.0.0
+        requirements = python3,kivy==2.1.0,kivymd,plyer,pyjnius,android,pillow,requests,numpy
+        presplash.filename = assets/presplash.png
+        icon.filename = assets/icon.png
+        orientation = portrait
+        fullscreen = 0
+        
+        [buildozer]
+        log_level = 2
+        
+        android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE,ACCESSIBILITY_SERVICE,BIND_ACCESSIBILITY_SERVICE,DRAW_OVER_OTHER_APPS
+        android.api = 33
+        android.minapi = 23
+        android.ndk = 25b
+        android.sdk = 33
+        android.accept_sdk_license = True
+        android.arch = arm64-v8a
+        
+        android.gradle_dependencies = androidx.core:core:1.8.0, androidx.appcompat:appcompat:1.5.0
+        android.add_src = java/
+        android.add_permissions = android.permission.SYSTEM_ALERT_WINDOW
+        
+        [app:android.manifest]
+        android:hardwareAccelerated = true
+        android:largeHeap = true
+        EOF
+        
+        echo "✅ Created comprehensive buildozer.spec"
+        
+    - name: Build full-featured APK
+      working-directory: android_overlay
+      env:
+        ANDROID_HOME: ${{ github.workspace }}/.buildozer/android/platform/android-sdk
+        ANDROID_SDK_ROOT: ${{ github.workspace }}/.buildozer/android/platform/android-sdk
+      run: |
+        # Set build type
+        BUILD_TYPE="${{ github.event.inputs.build_type || 'debug' }}"
+        
+        echo "🚀 Building Universal Soul AI APK ($BUILD_TYPE)..."
+        echo "📁 Working directory: $(pwd)"
+        echo "📋 Files present:"
+        ls -la
+        
+        # Verify buildozer configuration
+        echo "🔍 Buildozer configuration:"
+        buildozer android $BUILD_TYPE --verbose
+        
+    - name: Find and verify APK
+      working-directory: android_overlay
+      run: |
+        echo "🔍 Searching for generated APK files..."
+        find . -name "*.apk" -type f -exec ls -lh {} \;
+        
+        echo "📁 Checking bin directory:"
+        ls -la bin/ || echo "No bin directory found"
+        
+        echo "📁 Checking .buildozer structure:"
+        find .buildozer -name "*.apk" -type f -exec ls -lh {} \; || echo "No APK in .buildozer"
+        
+        # Get APK info if found
+        APK_FILE=$(find . -name "*.apk" -type f | head -1)
+        if [ -n "$APK_FILE" ]; then
+          echo "✅ APK found: $APK_FILE"
+          echo "📊 APK size: $(du -h "$APK_FILE" | cut -f1)"
+          echo "📝 APK details:"
+          file "$APK_FILE"
+        else
+          echo "❌ No APK file found"
+          exit 1
+        fi
+        
+    - name: Upload full APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: universal-soul-ai-full-${{ github.event.inputs.build_type || 'debug' }}-apk
+        path: |
+          android_overlay/bin/*.apk
+          android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
+        if-no-files-found: error
+        
+    - name: Create comprehensive release
+      if: github.ref == 'refs/heads/main' && (github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '')
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: "v1.0.${{ github.run_number }}"
+        name: "🚀 Universal Soul AI v1.0.${{ github.run_number }} - Full Featured"
+        body: |
+          # 🤖 Universal Soul AI - Complete Android Experience
+          
+          ## ✨ Features Included:
+          - **🎯 360° Gesture Recognition** - Advanced gesture detection and processing
+          - **🛡️ Privacy-First AI Overlay** - On-device processing, no data collection
+          - **🎤 Voice Interface Integration** - Natural language interaction
+          - **📱 Mobile-Optimized UI** - Responsive KivyMD interface
+          - **🔧 Comprehensive Permissions** - System overlay and accessibility access
+          - **⚡ Real-time Processing** - Low-latency gesture and voice recognition
+          
+          ## 🛠️ Technical Specifications:
+          - **Android API:** 23+ (Android 6.0+)
+          - **Architecture:** ARM64-v8a
+          - **Framework:** Kivy 2.1.0 + KivyMD
+          - **Build:** ${{ github.event.inputs.build_type || 'debug' }}
+          - **Commit:** `${{ github.sha }}`
+          - **Build Date:** ${{ github.event.head_commit.timestamp }}
+          
+          ## 📲 Installation Instructions:
+          1. **Download** the APK file below
+          2. **Enable** "Install from Unknown Sources" in Android Settings > Security
+          3. **Install** the downloaded APK
+          4. **Grant** overlay permissions when prompted
+          5. **Allow** accessibility service access for gesture recognition
+          6. **Enjoy** your privacy-first AI companion!
+          
+          ## 🔧 Permissions Required:
+          - **System Alert Window** - For overlay functionality
+          - **Accessibility Service** - For gesture recognition
+          - **Camera & Microphone** - For AI interaction (optional)
+          - **Internet** - For enhanced AI features (data stays local)
+          
+          ## 🚀 Quick Start:
+          After installation, launch Universal Soul AI and follow the setup wizard to configure your personalized AI experience.
+          
+          ---
+          **Build #${{ github.run_number }}** | **Commit:** ${{ github.sha }} | **Size:** ~15-25MB
+        files: |
+          android_overlay/bin/*.apk
+          android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
