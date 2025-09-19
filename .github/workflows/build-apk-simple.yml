@@ -1,0 +1,180 @@
+name: Universal Soul AI - Simple APK Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          python3-dev \
+          ffmpeg \
+          libsdl2-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-ttf-dev \
+          libportmidi-dev \
+          libswscale-dev \
+          libavformat-dev \
+          libavcodec-dev \
+          zlib1g-dev \
+          libgstreamer1.0 \
+          gstreamer1.0-plugins-base \
+          gstreamer1.0-plugins-good
+          
+    - name: Upgrade pip and install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install buildozer
+        pip install cython==0.29.33
+        pip install kivy[base] kivymd
+        
+    - name: Set up Android environment
+      run: |
+        # Set environment variables
+        echo "ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+        
+    - name: Cache Buildozer global directory
+      uses: actions/cache@v3
+      with:
+        path: .buildozer_global
+        key: buildozer-global-${{ hashFiles('android_overlay/buildozer.spec') }}
+        
+    - name: Cache Buildozer directory
+      uses: actions/cache@v3
+      with:
+        path: android_overlay/.buildozer
+        key: buildozer-${{ hashFiles('android_overlay/buildozer.spec') }}
+        
+    - name: Create minimal assets
+      working-directory: android_overlay
+      run: |
+        mkdir -p assets
+        
+        # Create a simple icon using Python
+        python3 -c "
+        from PIL import Image, ImageDraw
+        import os
+        
+        # Create icon
+        size = 512
+        icon = Image.new('RGBA', (size, size), (33, 150, 243, 255))
+        draw = ImageDraw.Draw(icon)
+        
+        # Draw a simple circle
+        margin = size // 8
+        draw.ellipse([margin, margin, size-margin, size-margin], fill=(255, 255, 255, 255))
+        
+        # Save icon
+        icon.save('assets/icon.png')
+        print('Created icon.png')
+        
+        # Create presplash
+        splash = Image.new('RGB', (800, 600), (33, 150, 243))
+        splash.save('assets/presplash.png')
+        print('Created presplash.png')
+        " || echo "Using fallback asset creation"
+        
+        # Fallback: create minimal placeholder files
+        if [ ! -f assets/icon.png ]; then
+          echo "Creating fallback icon"
+          convert -size 512x512 xc:'#2196F3' assets/icon.png || cp ../README.md assets/icon.png
+        fi
+        
+        if [ ! -f assets/presplash.png ]; then
+          echo "Creating fallback presplash"
+          convert -size 800x600 xc:'#2196F3' assets/presplash.png || cp ../README.md assets/presplash.png
+        fi
+        
+    - name: Build APK
+      working-directory: android_overlay
+      run: |
+        # Ensure we have a clean buildozer spec
+        if [ ! -f buildozer.spec ]; then
+          buildozer init
+          echo "Initialized buildozer.spec"
+        fi
+        
+        # Build debug APK
+        buildozer android debug --verbose
+        
+    - name: Find and list APK files
+      working-directory: android_overlay
+      run: |
+        echo "=== Build completed, searching for APK ==="
+        find . -name "*.apk" -type f -exec ls -lh {} \;
+        
+        echo "=== Buildozer bin directory ==="
+        ls -la bin/ || echo "No bin directory found"
+        
+        echo "=== .buildozer directory structure ==="
+        find .buildozer -name "*.apk" -type f -exec ls -lh {} \; || echo "No APK found in .buildozer"
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: universal-soul-ai-debug-apk
+        path: |
+          android_overlay/bin/*.apk
+          android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
+        if-no-files-found: warn
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: "v1.0.${{ github.run_number }}"
+        name: "Universal Soul AI v1.0.${{ github.run_number }}"
+        body: |
+          🚀 **Universal Soul AI - Android APK Release**
+          
+          **Features:**
+          - 360° Gesture Recognition System
+          - Privacy-first AI Overlay
+          - Voice Interface Integration
+          - Multi-modal AI Interaction
+          
+          **Build Info:**
+          - Commit: ${{ github.sha }}
+          - Build: #${{ github.run_number }}
+          - Date: ${{ github.event.head_commit.timestamp }}
+          
+          **Installation:**
+          1. Download the APK file below
+          2. Enable "Unknown Sources" in Android settings
+          3. Install the APK
+          4. Grant necessary permissions for overlay functionality
+          
+        files: |
+          android_overlay/bin/*.apk
+          android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
