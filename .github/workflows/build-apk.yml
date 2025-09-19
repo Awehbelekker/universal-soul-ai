@@ -69,9 +69,32 @@ jobs:
         
     - name: Setup Android SDK
       run: |
-        # Let buildozer handle Android SDK installation
-        export ANDROID_HOME=/opt/android-sdk
-        export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+        # Set up Android SDK environment
+        export ANDROID_HOME=$HOME/android-sdk
+        export ANDROID_SDK_ROOT=$ANDROID_HOME
+        export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0
+        
+        # Create Android SDK directory
+        mkdir -p $ANDROID_HOME
+        
+        # Download Android command line tools
+        cd $ANDROID_HOME
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip commandlinetools-linux-11076708_latest.zip
+        mkdir -p cmdline-tools/latest
+        mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+        
+        # Accept licenses
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+        
+        # Install required SDK components including build-tools (which contains AIDL)
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;25.1.8937393"
+        
+        # Verify AIDL installation
+        ls -la $ANDROID_HOME/build-tools/34.0.0/aidl || echo "AIDL not found in expected location"
+        
+        # Make sure PATH includes build-tools
+        echo "export PATH=\$PATH:$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_ENV
         
     - name: Prepare build environment
       working-directory: android_overlay
@@ -125,7 +148,21 @@ jobs:
         
     - name: Build APK with Buildozer
       working-directory: android_overlay
+      env:
+        ANDROID_HOME: ${{ env.HOME }}/android-sdk
+        ANDROID_SDK_ROOT: ${{ env.HOME }}/android-sdk
+        PATH: ${{ env.PATH }}:${{ env.HOME }}/android-sdk/build-tools/34.0.0
       run: |
+        # Set environment variables
+        export ANDROID_HOME=$HOME/android-sdk
+        export ANDROID_SDK_ROOT=$ANDROID_HOME
+        export PATH=$PATH:$ANDROID_HOME/build-tools/34.0.0:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools
+        
+        # Verify AIDL is accessible
+        echo "Checking for AIDL..."
+        which aidl || echo "AIDL not in PATH, checking Android SDK..."
+        ls -la $ANDROID_HOME/build-tools/34.0.0/aidl || echo "AIDL not found"
+        
         # Initialize buildozer if needed
         if [ ! -f buildozer.spec ]; then
           buildozer init
