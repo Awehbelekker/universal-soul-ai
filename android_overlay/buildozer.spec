@@ -23,7 +23,7 @@ version = 1.0.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.1.0,kivymd,plyer,pyjnius,android,psutil
+requirements = python3,kivy==2.1.0,plyer,pyjnius,android,psutil
 
 # (str) Presplash of the application
 presplash.filename = assets/presplash.png
@@ -41,7 +41,7 @@ fullscreen = 0
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE,ACCESSIBILITY_SERVICE
 
 # (int) Target Android API, should be as high as possible.
-android.api = 33
+android.api = 31
 
 # (int) Minimum API your APK will support.
 android.minapi = 23
@@ -50,7 +50,7 @@ android.minapi = 23
 android.ndk = 25b
 
 # (str) Android SDK version to use
-android.sdk = 33
+android.sdk = 31
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
@@ -101,7 +101,7 @@ android.logcat_filters = *:S python:D
 android.copy_libs = 1
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-android.archs = arm64-v8a,armeabi-v7a
+android.archs = arm64-v8a
 
 # (bool) enables Android auto backup feature (Android API >=23)
 android.allow_backup = True

@@ -45,6 +45,7 @@ jobs:
           name: universal-soul-ai-${{ github.event.inputs.build_type }}-apk
           path: |
             android_overlay/bin/*.apk
+            android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
             android_overlay/.buildozer/android/logs/**
           retention-days: 14
 
