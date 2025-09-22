@@ -1,51 +1,11 @@
-name: 📦 Universal Soul AI - Full APK Build (disabled)
+name: Disabled Full APK Build (stub)
 
 on:
   workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build type (debug/release)'
-        required: true
-        default: 'debug'
-        type: choice
-        options:
-        - debug
-        - release
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
-
+  noop:
+    runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-
-      - name: 🏗️ Build with Buildozer (Android)
-        uses: ArtemSBulgakov/buildozer-action@v1
-        env:
-          USER: root
-        with:
-          workdir: android_overlay
-          buildozer_version: stable
-          command: |
-            BUILD_TYPE="${{ github.event.inputs.build_type }}"
-            if [ -z "$BUILD_TYPE" ]; then BUILD_TYPE=debug; fi
-            echo "Using build type: $BUILD_TYPE"
-            buildozer android "$BUILD_TYPE" --verbose
-
-      - name: 📦 Upload APK artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: universal-soul-ai-${{ github.event.inputs.build_type }}-apk
-          path: |
-            android_overlay/bin/*.apk
-            android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
-            android_overlay/.buildozer/android/logs/**
-          retention-days: 14
-
-      - name: 📋 Show bin directory
-        if: always()
-        run: |
-          ls -la android_overlay/bin || true
-          find android_overlay/.buildozer/android/logs -type f -maxdepth 1 -print || true
+      - name: Disabled
+        run: echo "This workflow is disabled; use build-complete-apk.yml"

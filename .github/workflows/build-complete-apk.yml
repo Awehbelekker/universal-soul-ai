@@ -1,4 +1,4 @@
-name: 🌟 Universal Soul AI - Complete Full Build
+name: Universal Soul AI - Complete Full Build
 
 on:
   push:
@@ -10,23 +10,22 @@ on:
 jobs:
   build-complete-apk:
     runs-on: ubuntu-22.04
-    
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: 🐍 Setup Python 3.9
+
+      - name: Setup Python 3.9
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      
-      - name: ☕ Setup JDK 8
+
+      - name: Setup JDK 8
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '8'
-      
-      - name: 📦 Install system dependencies
+
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -37,89 +36,76 @@ jobs:
             libffi-dev libssl-dev autoconf automake libtool pkg-config \
             zlib1g-dev libjpeg-dev \
             libfreetype6-dev
-      
-      - name: 🔧 Setup Android SDK (Complete)
+
+      - name: Setup Android SDK (Complete)
         run: |
-          # Create Android SDK directory
-          mkdir -p $HOME/android-sdk
-          cd $HOME/android-sdk
-          
-          # Download command line tools
+          mkdir -p "$HOME/android-sdk"
+          cd "$HOME/android-sdk"
+
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
           unzip -q commandlinetools-linux-8512546_latest.zip
           mkdir -p cmdline-tools/latest
           mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
-          
-          # Set environment variables
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
-          
-          # Accept licenses
+
+          export ANDROID_HOME="$HOME/android-sdk"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+          echo "ANDROID_HOME=$HOME/android-sdk" >> "$GITHUB_ENV"
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$HOME/android-sdk/platform-tools" >> "$GITHUB_PATH"
+
           yes | sdkmanager --licenses || true
-          
-          # Install required SDK components (pinned)
+
           sdkmanager "platforms;android-31" "build-tools;31.0.0" "platform-tools"
           sdkmanager "ndk;25.2.9519653"
-      
-      - name: 🏗️ Build Complete APK with Buildozer
+
+      - name: Build Complete APK with Buildozer
         working-directory: android_overlay
         run: |
-          echo "🚀 Starting Universal Soul AI complete build..."
-          
-          # Create virtual environment (bypass PEP 668)
+          echo "Starting Universal Soul AI complete build..."
+
           python3 -m venv buildenv
           source buildenv/bin/activate
-          
-          # Upgrade pip
+
           pip install --upgrade pip setuptools wheel
-          
-          # Install Buildozer and dependencies
           pip install buildozer==1.5.0 cython==0.29.33 python-for-android==2024.06.03
-          
-          # Set Android environment variables
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-          export ANDROID_SDK_ROOT=$HOME/android-sdk
+
+          export ANDROID_HOME="$HOME/android-sdk"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+          export ANDROID_SDK_ROOT="$HOME/android-sdk"
           export ANDROIDAPI=31
-          export ANDROIDNDK=$HOME/android-sdk/ndk/25.2.9519653
+          export ANDROIDNDK="$HOME/android-sdk/ndk/25.2.9519653"
           export NDKAPI=23
-          
-          # Show environment info
+
           echo "=== Build Environment ==="
-          echo "Python version: $(python --version)"
-          echo "Buildozer version: $(buildozer version)"
+          python --version
+          buildozer version
           echo "ANDROID_HOME: $ANDROID_HOME"
           echo "ANDROIDNDK: $ANDROIDNDK"
-          echo "Java version: $(java -version 2>&1 | head -n 1)"
-          
-          # Clean any previous builds and clear .buildozer cache
+          java -version || true
+
           rm -rf .buildozer || true
           buildozer android clean || true
-          
-          # Build debug APK with verbose output
-          echo "🔨 Building APK..."
+
+          echo "Building APK..."
           buildozer android debug --verbose
-          
-          echo "✅ Build completed!"
-      
-      - name: 📋 List build outputs
+
+          echo "Build completed!"
+
+      - name: List build outputs
         run: |
           echo "=== Searching for APK files ==="
           find android_overlay -name "*.apk" -type f -exec ls -lh {} \; || echo "No APK files found"
-          
+
           echo "=== Build directory contents ==="
           ls -la android_overlay/bin/ 2>/dev/null || echo "No bin directory"
-          
+
           echo "=== Buildozer directory contents ==="
           find android_overlay/.buildozer -name "*.apk" -type f -exec ls -lh {} \; 2>/dev/null || echo "No APK in .buildozer"
-          
+
           echo "=== All APK files in project ==="
           find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found anywhere"
-      
-      - name: 📦 Upload Complete APK Artifacts
+
+      - name: Upload Complete APK Artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -130,22 +116,21 @@ jobs:
             android_overlay/.buildozer/android/platform/build-*/dists/*/build/outputs/apk/debug/*.apk
             android_overlay/.buildozer/android/logs/**
           retention-days: 30
-      
-      - name: 📊 Build Summary
+
+      - name: Build Summary
         if: always()
         run: |
           echo "=== Universal Soul AI Build Summary ==="
-          echo "📱 Platform: Android"
-          echo "🎯 Target API: 31"
-          echo "📦 Build Type: Debug APK"
-          echo "🔧 Features: Complete (Voice, Gesture, Overlay, Context)"
-          echo "📚 UI Framework: KivyMD + Kivy fallbacks"
-          echo "🔒 Privacy: Local processing enabled"
-          echo ""
+          echo "Platform: Android"
+          echo "Target API: 31"
+          echo "Build Type: Debug APK"
+          echo "Features: Complete (Voice, Gesture, Overlay, Context)"
+          echo "UI Framework: KivyMD + Kivy fallbacks"
+          echo "Privacy: Local processing enabled"
           if find android_overlay -name "*.apk" -type f | grep -q .; then
-            echo "✅ BUILD SUCCESS: APK generated!"
-            echo "📥 Download artifact: universal-soul-ai-complete-debug-apk"
+            echo "BUILD SUCCESS: APK generated!"
+            echo "Download artifact: universal-soul-ai-complete-debug-apk"
           else
-            echo "❌ BUILD INCOMPLETE: No APK found"
-            echo "📋 Check logs above for errors"
+            echo "BUILD INCOMPLETE: No APK found"
+            echo "Check logs above for errors"
           fi
