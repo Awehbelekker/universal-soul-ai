@@ -79,7 +79,7 @@ jobs:
 
           # Prefetch PyPI wheels/sdists for app requirements into the pip cache
           REQS_LINE=$(grep -E '^[[:space:]]*requirements[[:space:]]*=' buildozer.spec | head -n1 | sed -E 's/^[[:space:]]*requirements[[:space:]]*=[[:space:]]*//')
-          echo "$REQS_LINE" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' > p4a-reqs.txt
+          echo "$REQS_LINE" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' | grep -v '^python3$' > p4a-reqs.txt
           echo "Resolved p4a requirements:"; cat p4a-reqs.txt || true
           mkdir -p "$HOME/.cache/pip"
           pip download -r p4a-reqs.txt --dest "$HOME/.cache/pip" || true
@@ -115,6 +115,19 @@ jobs:
           java -version || true
 
           echo "Preserving .buildozer cache to leverage warmed downloads."
+
+          # Force Buildozer to use our pre-installed SDK/NDK by creating symlinks
+          mkdir -p .buildozer/android/platform
+          if [ ! -L ".buildozer/android/platform/android-sdk" ]; then
+            ln -sf "$ANDROID_HOME" .buildozer/android/platform/android-sdk
+          fi
+          if [ ! -L ".buildozer/android/platform/android-ndk-r25.2.9519653" ]; then
+            ln -sf "$ANDROIDNDK" .buildozer/android/platform/android-ndk-r25.2.9519653
+          fi
+          
+          # Also set the Buildozer-specific environment variables
+          export BUILDOZER_ANDROID_SDK_ROOT="$ANDROID_HOME"
+          export BUILDOZER_ANDROID_NDK_ROOT="$ANDROIDNDK"
 
           echo "Building APK with retries..."
           attempts=0
