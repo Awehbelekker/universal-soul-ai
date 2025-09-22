@@ -36,7 +36,7 @@ jobs:
             zlib1g-dev libjpeg-dev \
             libfreetype6-dev
 
-      - name: Setup Android SDK (Complete)
+      - name: Setup Android SDK
         run: |
           mkdir -p "$HOME/android-sdk"
           cd "$HOME/android-sdk"
@@ -53,42 +53,10 @@ jobs:
           echo "$HOME/android-sdk/platform-tools" >> "$GITHUB_PATH"
 
           yes | sdkmanager --licenses || true
-
           sdkmanager "platforms;android-31" "build-tools;31.0.0" "platform-tools"
           sdkmanager "ndk;25.2.9519653"
 
-      - name: Warm caches (SDK and pip deps)
-        working-directory: android_overlay
-        run: |
-          echo "Warming caches to reduce first-time downloads..."
-
-          python3 -m venv warmenv
-          source warmenv/bin/activate
-
-          pip install --upgrade pip setuptools wheel
-          pip install buildozer==1.5.0 python-for-android==2024.1.21
-
-          export ANDROID_HOME="$HOME/android-sdk"
-          export ANDROID_SDK_ROOT="$HOME/android-sdk"
-          export ANDROIDSDK="$HOME/android-sdk"
-          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
-
-          # Accept licenses and prefetch common SDK extras used by Gradle
-          yes | sdkmanager --licenses || true
-          sdkmanager "extras;google;m2repository" "extras;android;m2repository" || true
-
-          # Prefetch PyPI wheels/sdists for app requirements into the pip cache
-          REQS_LINE=$(grep -E '^[[:space:]]*requirements[[:space:]]*=' buildozer.spec | head -n1 | sed -E 's/^[[:space:]]*requirements[[:space:]]*=[[:space:]]*//')
-          echo "$REQS_LINE" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' | grep -v '^python3$' > p4a-reqs.txt
-          echo "Resolved p4a requirements:"; cat p4a-reqs.txt || true
-          mkdir -p "$HOME/.cache/pip"
-          pip download -r p4a-reqs.txt --dest "$HOME/.cache/pip" || true
-
-          # Touch p4a/buildozer so .buildozer gets initialized without a full build
-          buildozer version || true
-          buildozer android p4a -- recipes || true
-
-      - name: Build Complete APK with Buildozer
+      - name: Build APK with Buildozer
         working-directory: android_overlay
         run: |
           echo "Starting Universal Soul AI complete build..."
@@ -114,9 +82,7 @@ jobs:
           echo "ANDROIDNDK: $ANDROIDNDK"
           java -version || true
 
-          echo "Preserving .buildozer cache to leverage warmed downloads."
-
-          # Force Buildozer to use our pre-installed SDK/NDK by creating symlinks
+          # Force Buildozer to use our pre-installed SDK/NDK
           mkdir -p .buildozer/android/platform
           if [ ! -L ".buildozer/android/platform/android-sdk" ]; then
             ln -sf "$ANDROID_HOME" .buildozer/android/platform/android-sdk
@@ -125,7 +91,6 @@ jobs:
             ln -sf "$ANDROIDNDK" .buildozer/android/platform/android-ndk-r25.2.9519653
           fi
           
-          # Also set the Buildozer-specific environment variables
           export BUILDOZER_ANDROID_SDK_ROOT="$ANDROID_HOME"
           export BUILDOZER_ANDROID_NDK_ROOT="$ANDROIDNDK"
 
@@ -149,17 +114,14 @@ jobs:
         run: |
           echo "=== Searching for APK files ==="
           find android_overlay -name "*.apk" -type f -exec ls -lh {} \; || echo "No APK files found"
-
           echo "=== Build directory contents ==="
           ls -la android_overlay/bin/ 2>/dev/null || echo "No bin directory"
-
           echo "=== Buildozer directory contents ==="
           find android_overlay/.buildozer -name "*.apk" -type f -exec ls -lh {} \; 2>/dev/null || echo "No APK in .buildozer"
-
           echo "=== All APK files in project ==="
           find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found anywhere"
 
-      - name: Upload Complete APK Artifacts
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -12,4 +12,3 @@ jobs:
     steps:
       - name: Refer to top-level workflows
         run: echo "Use .github/workflows/build-complete-apk.yml at repo root"
-      # Placeholder for future steps
