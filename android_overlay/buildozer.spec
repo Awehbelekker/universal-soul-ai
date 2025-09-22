@@ -23,7 +23,8 @@ version = 1.0.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.1.0,plyer,pyjnius,android,requests
+# Full feature set: Kivy + KivyMD + Android + networking (no heavy C aiohttp)
+requirements = python3,kivy==2.1.0,kivymd==1.1.1,plyer,pyjnius,android,psutil,requests,websockets,python-dotenv
 
 # (str) Presplash of the application
 presplash.filename = assets/presplash.png
@@ -41,16 +42,16 @@ fullscreen = 0
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE,ACCESSIBILITY_SERVICE
 
 # (int) Target Android API, should be as high as possible.
-android.api = 30
+android.api = 31
 
 # (int) Minimum API your APK will support.
-android.minapi = 21
+android.minapi = 23
 
 # (str) Android NDK version to use
 android.ndk = 25b
 
 # (str) Android SDK version to use
-android.sdk = 30
+android.sdk = 31
 android.accept_sdk_license = True
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
