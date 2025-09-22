@@ -1,10 +1,6 @@
-name: ⚡ Universal Soul AI - Quick APK Build
+name: ⚡ Universal Soul AI - Quick APK Build (disabled)
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
