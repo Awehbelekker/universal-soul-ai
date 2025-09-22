@@ -57,14 +57,7 @@ android.accept_sdk_license = True
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
 
-# (str) Android entry point, default is ok for Kivy-based app
-android.entrypoint = org.kivy.android.PythonActivity
-
-# (str) Full name including package path of the Java class that implements Android Activity
-android.activity_class_name = org.kivy.android.PythonActivity
-
-# (str) Full name including package path of the Java class that implements Python Service
-android.service_class_name = org.kivy.android.PythonService
+# Default Android entrypoints/classes used; explicit overrides removed
 
 # (list) Pattern to whitelist for the whole project
 android.whitelist = 

@@ -77,7 +77,7 @@ jobs:
           pip install --upgrade pip setuptools wheel
           
           # Install Buildozer and dependencies
-          pip install buildozer==1.5.0 cython==0.29.33
+          pip install buildozer==1.5.0 cython==0.29.33 python-for-android==2024.06.03
           
           # Set Android environment variables
           export ANDROID_HOME=$HOME/android-sdk
@@ -95,7 +95,8 @@ jobs:
           echo "ANDROIDNDK: $ANDROIDNDK"
           echo "Java version: $(java -version 2>&1 | head -n 1)"
           
-          # Clean any previous builds
+          # Clean any previous builds and clear .buildozer cache
+          rm -rf .buildozer || true
           buildozer android clean || true
           
           # Build debug APK with verbose output
