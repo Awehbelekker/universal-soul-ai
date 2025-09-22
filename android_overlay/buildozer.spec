@@ -78,11 +78,7 @@ android.blacklist_src =
 # (list) List of Java .jar files to add to the libs so that pyjnius can access their classes
 android.add_jars = 
 
-# (str) OUYA Console category. Should be one of GAME or APP
-android.ouya.category = APP
-
-# (str) Filename of OUYA Console icon. It must be a 732x412 png image.
-android.ouya.icon.filename = assets/ouya_icon.png
+# (str) OUYA console fields removed (not supported by current p4a)
 
 # (str) XML file to include as an intent filters in <activity> tag
 android.manifest.intent_filters = 
