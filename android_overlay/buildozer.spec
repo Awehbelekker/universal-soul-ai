@@ -39,7 +39,7 @@ orientation = portrait
 fullscreen = 0
 
 # (list) Permissions
-android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE,ACCESSIBILITY_SERVICE
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE
 
 # (int) Target Android API, should be as high as possible.
 android.api = 31
@@ -48,7 +48,7 @@ android.api = 31
 android.minapi = 23
 
 # (str) Android NDK version to use
-android.ndk = 25b
+android.ndk = 25.2.9519653
 
 # (str) Android SDK version to use
 android.sdk = 31

@@ -1,4 +1,7 @@
 name: Unused Nested Workflow (placeholder)
+# Note: This nested workflow file is not used by GitHub Actions.
+# GitHub only loads workflows from the repository root at `.github/workflows/`.
+# Please use `.github/workflows/build-complete-apk.yml` instead.
 
 on:
   workflow_dispatch:
