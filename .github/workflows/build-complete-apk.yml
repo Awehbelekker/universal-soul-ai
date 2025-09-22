@@ -67,7 +67,7 @@ jobs:
           source buildenv/bin/activate
 
           pip install --upgrade pip setuptools wheel
-            pip install buildozer==1.5.0 cython==0.29.33 python-for-android==2024.1.21
+          pip install buildozer==1.5.0 cython==0.29.33 python-for-android==2024.1.21
 
           export ANDROID_HOME="$HOME/android-sdk"
           export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"

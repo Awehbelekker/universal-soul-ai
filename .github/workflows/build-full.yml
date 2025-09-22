@@ -1,23 +1,11 @@
-name: Universal Soul AI - Full Featured APK Build
+name: Disabled Full Build (stub)
 
 on:
-  push:
-    branches: [ main, master ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
   workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build type'
-        name: Disabled Full Build (stub)
 
-        on:
-          workflow_dispatch:
-
-        jobs:
-          noop:
-            runs-on: ubuntu-latest
-            steps:
-              - name: Disabled
-                run: echo "This workflow is disabled; use build-complete-apk.yml"
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disabled
+        run: echo "This workflow is disabled; use build-complete-apk.yml"
