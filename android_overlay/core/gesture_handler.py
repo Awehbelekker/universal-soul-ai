@@ -22,7 +22,6 @@ import logging
 
 # Android-specific imports
 try:
-    from android.runnable import run_on_ui_thread
     from jnius import autoclass
     ANDROID_AVAILABLE = True
 except ImportError:

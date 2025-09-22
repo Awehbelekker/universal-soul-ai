@@ -57,6 +57,37 @@ jobs:
           sdkmanager "platforms;android-31" "build-tools;31.0.0" "platform-tools"
           sdkmanager "ndk;25.2.9519653"
 
+      - name: Warm caches (SDK and pip deps)
+        working-directory: android_overlay
+        run: |
+          echo "Warming caches to reduce first-time downloads..."
+
+          python3 -m venv warmenv
+          source warmenv/bin/activate
+
+          pip install --upgrade pip setuptools wheel
+          pip install buildozer==1.5.0 python-for-android==2024.1.21
+
+          export ANDROID_HOME="$HOME/android-sdk"
+          export ANDROID_SDK_ROOT="$HOME/android-sdk"
+          export ANDROIDSDK="$HOME/android-sdk"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+
+          # Accept licenses and prefetch common SDK extras used by Gradle
+          yes | sdkmanager --licenses || true
+          sdkmanager "extras;google;m2repository" "extras;android;m2repository" || true
+
+          # Prefetch PyPI wheels/sdists for app requirements into the pip cache
+          REQS_LINE=$(grep -E '^[[:space:]]*requirements[[:space:]]*=' buildozer.spec | head -n1 | sed -E 's/^[[:space:]]*requirements[[:space:]]*=[[:space:]]*//')
+          echo "$REQS_LINE" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sed '/^$/d' > p4a-reqs.txt
+          echo "Resolved p4a requirements:"; cat p4a-reqs.txt || true
+          mkdir -p "$HOME/.cache/pip"
+          pip download -r p4a-reqs.txt --dest "$HOME/.cache/pip" || true
+
+          # Touch p4a/buildozer so .buildozer gets initialized without a full build
+          buildozer version || true
+          buildozer android p4a -- recipes || true
+
       - name: Build Complete APK with Buildozer
         working-directory: android_overlay
         run: |
@@ -71,6 +102,7 @@ jobs:
           export ANDROID_HOME="$HOME/android-sdk"
           export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
           export ANDROID_SDK_ROOT="$HOME/android-sdk"
+          export ANDROIDSDK="$HOME/android-sdk"
           export ANDROIDAPI=31
           export ANDROIDNDK="$HOME/android-sdk/ndk/25.2.9519653"
           export NDKAPI=23
@@ -82,11 +114,21 @@ jobs:
           echo "ANDROIDNDK: $ANDROIDNDK"
           java -version || true
 
-          rm -rf .buildozer || true
-          buildozer android clean || true
+          echo "Preserving .buildozer cache to leverage warmed downloads."
 
-          echo "Building APK..."
-          buildozer android debug --verbose
+          echo "Building APK with retries..."
+          attempts=0
+          until [ $attempts -ge 3 ]
+          do
+            buildozer android debug --verbose && break
+            attempts=$((attempts+1))
+            echo "Build attempt $attempts failed; retrying in 20 seconds..."
+            sleep 20
+          done
+          if [ $attempts -ge 3 ]; then
+            echo "Build failed after 3 attempts"
+            exit 1
+          fi
 
           echo "Build completed!"
 

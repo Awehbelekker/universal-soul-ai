@@ -67,10 +67,8 @@ Permission = None
 
 if platform == 'android':
     try:
-        from android.permissions import request_permissions, Permission
-        from jnius import autoclass, PythonJavaClass, java_method
-        from android import activity
-        
+        from android.permissions import request_permissions, Permission  # type: ignore
+        from jnius import autoclass, PythonJavaClass, java_method  # type: ignore
         # Android classes
         PythonActivity = autoclass('org.kivy.android.PythonActivity')
         Intent = autoclass('android.content.Intent')

@@ -108,10 +108,38 @@ class AndroidPermissions:
     def _request_standard_permissions(self):
         """Request standard Android permissions"""
         try:
-            from android.permissions import request_permissions, Permission, check_permission
-            
+            if platform != 'android':
+                logger.info("Not on Android, skipping standard permission requests")
+                # Mark all as granted for testing or non-Android platforms
+                for perm in self.required_permissions[1:]:  # Skip overlay permission
+                    self.permissions_granted[perm] = True
+                return True
+
+            if platform == 'android':
+                try:
+                    import importlib
+                    spec = importlib.util.find_spec("android.permissions")
+                    if spec is None:
+                        raise ImportError("android.permissions module not found")
+                    android_permissions_module = importlib.import_module("android.permissions")
+                    request_permissions = getattr(android_permissions_module, "request_permissions")
+                    Permission = getattr(android_permissions_module, "Permission")
+                    check_permission = getattr(android_permissions_module, "check_permission")
+                except ImportError:
+                    logger.warning("android.permissions module not available")
+                    # Mark all as granted for testing or if module is missing
+                    for perm in self.required_permissions[1:]:  # Skip overlay permission
+                        self.permissions_granted[perm] = True
+                    return True
+            else:
+                logger.info("Not on Android, skipping standard permission requests")
+                # Mark all as granted for testing or non-Android platforms
+                for perm in self.required_permissions[1:]:  # Skip overlay permission
+                    self.permissions_granted[perm] = True
+                return True
+
             logger.info("Requesting standard permissions...")
-            
+
             # Map our permissions to Android permission constants
             permission_map = {
                 'android.permission.RECORD_AUDIO': Permission.RECORD_AUDIO,
@@ -120,7 +148,7 @@ class AndroidPermissions:
                 'android.permission.WAKE_LOCK': Permission.WAKE_LOCK,
                 'android.permission.VIBRATE': Permission.VIBRATE
             }
-            
+
             # Check which permissions we need to request
             permissions_to_request = []
             for perm_string, perm_constant in permission_map.items():
@@ -129,12 +157,12 @@ class AndroidPermissions:
                     self.permissions_granted[perm_string] = False
                 else:
                     self.permissions_granted[perm_string] = True
-            
+
             # Request missing permissions
             if permissions_to_request:
                 request_permissions(permissions_to_request)
                 logger.info(f"Requested {len(permissions_to_request)} permissions")
-                
+
                 # Mark as granted (optimistic)
                 for perm in permissions_to_request:
                     for perm_string, perm_constant in permission_map.items():
@@ -142,7 +170,7 @@ class AndroidPermissions:
                             self.permissions_granted[perm_string] = True
             else:
                 logger.info("All standard permissions already granted")
-            
+
             return True
             
         except ImportError:

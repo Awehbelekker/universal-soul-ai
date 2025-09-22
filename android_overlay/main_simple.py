@@ -36,13 +36,25 @@ from kivy.utils import platform
 
 # Android-specific imports (conditional)
 ANDROID_AVAILABLE = False
+# Placeholders to avoid unresolved import errors when not on Android
+request_permission = None
+Permission = None
+activity = None
+
 if platform == 'android':
     try:
-        from android.permissions import request_permission, Permission
-        from android import activity
-        ANDROID_AVAILABLE = True
-        logger.info("Android platform detected and imports successful")
-    except ImportError as e:
+        import importlib
+        android_permissions = importlib.import_module('android.permissions')
+        request_permission = getattr(android_permissions, 'request_permission', None)
+        Permission = getattr(android_permissions, 'Permission', None)
+        android_mod = importlib.import_module('android')
+        activity = getattr(android_mod, 'activity', None)
+        if request_permission and Permission:
+            ANDROID_AVAILABLE = True
+            logger.info("Android platform detected and imports successful")
+        else:
+            logger.warning("Android modules loaded but expected attributes are missing")
+    except Exception as e:
         logger.warning(f"Android imports failed: {e}")
 
 class UniversalSoulApp(App):

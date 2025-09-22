@@ -17,59 +17,64 @@ from enum import Enum
 import logging
 
 # Android-specific imports (would be actual Android APIs in production)
+ANDROID_AVAILABLE = False  # Define early to avoid NameError
+
+# Initialize defaults
+request_permission = None
+Permission = None
+activity = None
+
+# Conditionally import Android/JNI APIs only when actually available
+import sys
+import importlib
+
 try:
-    # Android-specific imports (would be actual Android APIs in production)
-    request_permission = None
-    Permission = None
-    import sys
-    if hasattr(sys, 'getandroidapilevel'):
-        try:
-            import importlib
-            android_permissions = importlib.util.find_spec("android.permissions")
-            if android_permissions is not None:
-                try:
-                    try:
-                        try:
-                            try:
-                                try:
-                                    try:
-                                        from android.permissions import request_permission, Permission
-                                    except ImportError:
-                                        request_permission = None
-                                        Permission = None
-                                except ImportError:
-                                    request_permission = None
-                                    Permission = None
-                            except ImportError:
-                                request_permission = None
-                                Permission = None
-                        except ImportError:
-                            request_permission = None
-                            Permission = None
-                    except ImportError:
-                        request_permission = None
-                        Permission = None
-                except ImportError:
-                    request_permission = None
-                    Permission = None
-            else:
-                request_permission = None
-                Permission = None
-        except ImportError:
-            request_permission = None
-            Permission = None
-    else:
-        request_permission = None
-        Permission = None
-    from android.runnable import run_on_ui_thread
-    from android import activity
-    from jnius import autoclass, PythonJavaClass, java_method
-    ANDROID_AVAILABLE = True
-except ImportError:
-    # Fallback for testing on non-Android platforms
+    if hasattr(sys, 'getandroidapilevel') or sys.platform == 'android':
+        android_spec = importlib.util.find_spec("android")
+        jnius_spec = importlib.util.find_spec("jnius")
+        if android_spec is not None and jnius_spec is not None:
+            ANDROID_AVAILABLE = True
+
+            # Load android.permissions dynamically
+            perms_mod = importlib.import_module("android.permissions")
+            request_permission = getattr(perms_mod, "request_permission", None)
+            Permission = getattr(perms_mod, "Permission", None)
+
+            # Load android.runnable.run_on_ui_thread dynamically
+            runnable_mod = importlib.import_module("android.runnable")
+            run_on_ui_thread = getattr(runnable_mod, "run_on_ui_thread")
+
+            # Load android.activity dynamically
+            android_mod = importlib.import_module("android")
+            activity = getattr(android_mod, "activity", None)
+
+            # Load jnius utilities dynamically
+            jnius_mod = importlib.import_module("jnius")
+            autoclass = getattr(jnius_mod, "autoclass")
+            PythonJavaClass = getattr(jnius_mod, "PythonJavaClass")
+            java_method = getattr(jnius_mod, "java_method")
+        else:
+            ANDROID_AVAILABLE = False
+except Exception:
     ANDROID_AVAILABLE = False
     request_permission = None
     Permission = None
+
+# Provide safe fallbacks for non-Android environments to avoid NameError during analysis/runtime
+if not ANDROID_AVAILABLE:
+    def run_on_ui_thread(func):
+        return func
+
+    def autoclass(name: str):
+        raise ImportError("Android/JNI not available in this environment")
+
+    class PythonJavaClass:
+        pass
+
+    def java_method(signature: str):
+        def decorator(fn):
+            return fn
+        return decorator
 
 try:
     # Try to import from thinkmesh_core if available
