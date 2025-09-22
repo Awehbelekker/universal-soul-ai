@@ -82,29 +82,13 @@ jobs:
           echo "ANDROIDNDK: $ANDROIDNDK"
           java -version || true
 
-          # Force Buildozer to use our pre-installed SDK/NDK by copying to expected locations
-          echo "Setting up Buildozer environment to use pre-installed SDK/NDK..."
+          # Force Buildozer to use our pre-installed SDK/NDK
           mkdir -p .buildozer/android/platform
-          
-          # Copy our SDK to where Buildozer expects it
-          if [ ! -d ".buildozer/android/platform/android-sdk" ]; then
-            cp -r "$ANDROID_HOME" .buildozer/android/platform/android-sdk
-            echo "Copied SDK to Buildozer directory"
+          if [ ! -L ".buildozer/android/platform/android-sdk" ]; then
+            ln -sf "$ANDROID_HOME" .buildozer/android/platform/android-sdk
           fi
-          
-          # Copy our NDK to where Buildozer expects it  
-          if [ ! -d ".buildozer/android/platform/android-ndk-r25.2.9519653" ]; then
-            cp -r "$ANDROIDNDK" .buildozer/android/platform/android-ndk-r25.2.9519653
-            echo "Copied NDK to Buildozer directory"
-          fi
-          
-          # Also create the user-level .buildozer cache directory with our tools
-          mkdir -p ~/.buildozer/android/platform
-          if [ ! -d "~/.buildozer/android/platform/android-sdk" ]; then
-            cp -r "$ANDROID_HOME" ~/.buildozer/android/platform/android-sdk 2>/dev/null || true
-          fi
-          if [ ! -d "~/.buildozer/android/platform/android-ndk-r25.2.9519653" ]; then
-            cp -r "$ANDROIDNDK" ~/.buildozer/android/platform/android-ndk-r25.2.9519653 2>/dev/null || true
+          if [ ! -L ".buildozer/android/platform/android-ndk-r25.2.9519653" ]; then
+            ln -sf "$ANDROIDNDK" .buildozer/android/platform/android-ndk-r25.2.9519653
           fi
           
           export BUILDOZER_ANDROID_SDK_ROOT="$ANDROID_HOME"
@@ -114,58 +98,28 @@ jobs:
           attempts=0
           until [ $attempts -ge 3 ]
           do
-            echo "Build attempt $((attempts+1))/3..."
-            if buildozer android debug --verbose; then
-              echo "Build successful!"
-              break
-            else
-              attempts=$((attempts+1))
-              echo "Build attempt $attempts failed"
-              if [ $attempts -lt 3 ]; then
-                echo "Retrying in 20 seconds..."
-                sleep 20
-                # Clean up any partial build state
-                buildozer android clean || true
-              fi
-            fi
+            buildozer android debug --verbose && break
+            attempts=$((attempts+1))
+            echo "Build attempt $attempts failed; retrying in 20 seconds..."
+            sleep 20
           done
-          
           if [ $attempts -ge 3 ]; then
             echo "Build failed after 3 attempts"
-            echo "Checking for any generated files..."
-            find . -name "*.apk" -o -name "*.log" -o -name "*.txt" | head -20
-            echo "Buildozer logs:"
-            find .buildozer -name "*.log" -exec tail -50 {} \; 2>/dev/null || true
             exit 1
           fi
 
           echo "Build completed!"
 
       - name: List build outputs
-        if: always()
         run: |
-          echo "=== Current working directory ==="
-          pwd
-          ls -la
-          
-          echo "=== Android overlay directory ==="
-          ls -la android_overlay/ 2>/dev/null || echo "android_overlay directory not found"
-          
-          echo "=== Searching for APK files everywhere ==="
-          find . -name "*.apk" -type f -exec ls -lh {} \; 2>/dev/null || echo "No APK files found anywhere"
-          
+          echo "=== Searching for APK files ==="
+          find android_overlay -name "*.apk" -type f -exec ls -lh {} \; || echo "No APK files found"
           echo "=== Build directory contents ==="
           ls -la android_overlay/bin/ 2>/dev/null || echo "No bin directory"
-          
-          echo "=== Buildozer directory structure ==="
-          find android_overlay/.buildozer -type d -name "*dists*" 2>/dev/null || echo "No dists directory found"
+          echo "=== Buildozer directory contents ==="
           find android_overlay/.buildozer -name "*.apk" -type f -exec ls -lh {} \; 2>/dev/null || echo "No APK in .buildozer"
-          
-          echo "=== Log files ==="
-          find android_overlay/.buildozer -name "*.log" -type f 2>/dev/null | head -5
-          
-          echo "=== Recent build output ==="
-          find android_overlay/.buildozer -name "*.log" -newer android_overlay/.buildozer 2>/dev/null | head -3 | xargs tail -50 2>/dev/null || echo "No recent logs found"
+          echo "=== All APK files in project ==="
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found anywhere"
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
@@ -177,8 +131,6 @@ jobs:
             android_overlay/.buildozer/android/platform/build-*/dists/*/bin/*.apk
             android_overlay/.buildozer/android/platform/build-*/dists/*/build/outputs/apk/debug/*.apk
             android_overlay/.buildozer/android/logs/**
-            android_overlay/.buildozer/**/*.log
-            android_overlay/buildozer.spec
           retention-days: 30
 
       - name: Build Summary
