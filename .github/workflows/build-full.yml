@@ -80,7 +80,24 @@ jobs:
         # Also copy to workspace location for environment variables
         mkdir -p ${{ github.workspace }}/android_overlay/.buildozer/android/platform
         cp -r android-sdk ${{ github.workspace }}/android_overlay/.buildozer/android/platform/
-        cp -r android-ndk-r25.2.9519653 ${{ github.workspace }}/android_overlay/.buildozer/android/platform/
+        
+        # NDK is installed within the SDK directory structure
+        # Copy the entire SDK which includes the NDK
+        echo "NDK should be at: android-sdk/ndk/25.2.9519653"
+        ls -la android-sdk/ndk/ || echo "NDK directory not found, checking alternatives..."
+        
+        # Check if NDK was extracted as android-ndk-r25c
+        if [ -d "android-ndk-r25c" ]; then
+          echo "Found android-ndk-r25c, copying as android-ndk-r25.2.9519653"
+          cp -r android-ndk-r25c ${{ github.workspace }}/android_overlay/.buildozer/android/platform/android-ndk-r25.2.9519653
+        elif [ -d "android-sdk/ndk/25.2.9519653" ]; then
+          echo "Found NDK in SDK directory"
+          mkdir -p ${{ github.workspace }}/android_overlay/.buildozer/android/platform/android-ndk-r25.2.9519653
+          cp -r android-sdk/ndk/25.2.9519653/* ${{ github.workspace }}/android_overlay/.buildozer/android/platform/android-ndk-r25.2.9519653/
+        else
+          echo "NDK not found in expected locations, listing available directories:"
+          ls -la
+        fi
         
     - name: Prepare app files
       working-directory: android_overlay
