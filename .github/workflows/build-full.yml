@@ -59,8 +59,10 @@ jobs:
     - name: Install Android SDK and NDK
       run: |
         source venv/bin/activate
-        mkdir -p android_overlay/.buildozer/android/platform
-        cd android_overlay/.buildozer/android/platform
+        
+        # Use global buildozer directory for SDK/NDK
+        mkdir -p ~/.buildozer/android/platform
+        cd ~/.buildozer/android/platform
         
         # Download and install SDK
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
@@ -74,6 +76,11 @@ jobs:
         # Accept licenses and install components
         yes | sdkmanager --licenses
         sdkmanager "platforms;android-31" "build-tools;31.0.0" "ndk;25.2.9519653"
+        
+        # Also copy to workspace location for environment variables
+        mkdir -p ${{ github.workspace }}/android_overlay/.buildozer/android/platform
+        cp -r android-sdk ${{ github.workspace }}/android_overlay/.buildozer/android/platform/
+        cp -r android-ndk-r25.2.9519653 ${{ github.workspace }}/android_overlay/.buildozer/android/platform/
         
     - name: Prepare app files
       working-directory: android_overlay
@@ -100,14 +107,7 @@ jobs:
         
         # Create assets
         mkdir -p assets
-        python3 -c "
-from PIL import Image
-icon = Image.new('RGBA', (512, 512), (33, 150, 243, 255))
-icon.save('assets/icon.png')
-splash = Image.new('RGB', (1080, 1920), (33, 150, 243))
-splash.save('assets/presplash.png')
-print('Assets created')
-"
+        python3 -c "from PIL import Image; icon = Image.new('RGBA', (512, 512), (33, 150, 243, 255)); icon.save('assets/icon.png'); splash = Image.new('RGB', (1080, 1920), (33, 150, 243)); splash.save('assets/presplash.png'); print('Assets created')"
         
     - name: Configure buildozer
       working-directory: android_overlay
@@ -132,8 +132,7 @@ print('Assets created')
         echo "android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,CAMERA,RECORD_AUDIO,SYSTEM_ALERT_WINDOW,VIBRATE,ACCESS_NETWORK_STATE,WAKE_LOCK,FOREGROUND_SERVICE,ACCESSIBILITY_SERVICE,BIND_ACCESSIBILITY_SERVICE,DRAW_OVER_OTHER_APPS" >> buildozer.spec
         echo "android.api = 31" >> buildozer.spec
         echo "android.minapi = 23" >> buildozer.spec
-        echo "android.ndk = 25.2.9519653" >> buildozer.spec
-        echo "android.sdk = 31" >> buildozer.spec
+        echo "android.ndk = 25b" >> buildozer.spec
         echo "android.accept_sdk_license = True" >> buildozer.spec
         echo "android.arch = arm64-v8a" >> buildozer.spec
         echo "android.gradle_dependencies = androidx.core:core:1.8.0, androidx.appcompat:appcompat:1.5.0" >> buildozer.spec
@@ -146,8 +145,8 @@ print('Assets created')
     - name: Build APK
       working-directory: android_overlay
       env:
-        ANDROID_HOME: ${{ github.workspace }}/android_overlay/.buildozer/android/platform/android-sdk
-        ANDROID_SDK_ROOT: ${{ github.workspace }}/android_overlay/.buildozer/android/platform/android-sdk
+        ANDROID_HOME: /home/runner/.buildozer/android/platform/android-sdk
+        ANDROID_SDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk
       run: |
         source ../venv/bin/activate
         
