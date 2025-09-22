@@ -82,13 +82,29 @@ jobs:
           echo "ANDROIDNDK: $ANDROIDNDK"
           java -version || true
 
-          # Force Buildozer to use our pre-installed SDK/NDK
+          # Force Buildozer to use our pre-installed SDK/NDK by copying to expected locations
+          echo "Setting up Buildozer environment to use pre-installed SDK/NDK..."
           mkdir -p .buildozer/android/platform
-          if [ ! -L ".buildozer/android/platform/android-sdk" ]; then
-            ln -sf "$ANDROID_HOME" .buildozer/android/platform/android-sdk
+          
+          # Copy our SDK to where Buildozer expects it
+          if [ ! -d ".buildozer/android/platform/android-sdk" ]; then
+            cp -r "$ANDROID_HOME" .buildozer/android/platform/android-sdk
+            echo "Copied SDK to Buildozer directory"
           fi
-          if [ ! -L ".buildozer/android/platform/android-ndk-r25.2.9519653" ]; then
-            ln -sf "$ANDROIDNDK" .buildozer/android/platform/android-ndk-r25.2.9519653
+          
+          # Copy our NDK to where Buildozer expects it  
+          if [ ! -d ".buildozer/android/platform/android-ndk-r25.2.9519653" ]; then
+            cp -r "$ANDROIDNDK" .buildozer/android/platform/android-ndk-r25.2.9519653
+            echo "Copied NDK to Buildozer directory"
+          fi
+          
+          # Also create the user-level .buildozer cache directory with our tools
+          mkdir -p ~/.buildozer/android/platform
+          if [ ! -d "~/.buildozer/android/platform/android-sdk" ]; then
+            cp -r "$ANDROID_HOME" ~/.buildozer/android/platform/android-sdk 2>/dev/null || true
+          fi
+          if [ ! -d "~/.buildozer/android/platform/android-ndk-r25.2.9519653" ]; then
+            cp -r "$ANDROIDNDK" ~/.buildozer/android/platform/android-ndk-r25.2.9519653 2>/dev/null || true
           fi
           
           export BUILDOZER_ANDROID_SDK_ROOT="$ANDROID_HOME"
