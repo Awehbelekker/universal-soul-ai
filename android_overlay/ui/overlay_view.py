@@ -26,8 +26,11 @@ try:
     from jnius import autoclass
     from android.runnable import run_on_ui_thread
     ANDROID_AVAILABLE = True
-except ImportError:
+except (ImportError, Exception) as e:
+    # Handle both ImportError and JAVA_HOME issues
     ANDROID_AVAILABLE = False
+    autoclass = None
+    run_on_ui_thread = None
 
 # Kivy imports for UI (fallback for testing)
 try:

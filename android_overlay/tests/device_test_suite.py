@@ -8,6 +8,7 @@ import asyncio
 import json
 import time
 import logging
+import importlib
 from pathlib import Path
 from typing import Dict, Any, List
 from kivy.utils import platform
@@ -230,12 +231,20 @@ class DeviceTestSuite:
     async def _test_voice_interface(self):
         """Test voice interface"""
         try:
-            # Import voice interface if available
+            # Import voice interface if available (dynamic import to avoid static resolution errors)
+            import importlib.util
+            VoiceInterface = None
             try:
-                from voice.interface import VoiceInterface
-                voice_available = True
-            except ImportError:
-                logger.warning("Voice interface module not found")
+                spec = importlib.util.find_spec("core.voice.interface")
+                if spec is not None:
+                    module = importlib.import_module("core.voice.interface")
+                    VoiceInterface = getattr(module, "VoiceInterface", None)
+                    voice_available = VoiceInterface is not None
+                else:
+                    logger.warning("Voice interface module not found in core.voice.interface")
+                    voice_available = False
+            except Exception as e:
+                logger.warning(f"Error checking voice interface module: {e}")
                 voice_available = False
             
             if not voice_available:
@@ -267,7 +276,6 @@ class DeviceTestSuite:
             }
             
             return True  # Voice is optional
-            
         except Exception as e:
             logger.warning(f"Voice test error (non-critical): {e}")
             return True  # Voice functionality is optional

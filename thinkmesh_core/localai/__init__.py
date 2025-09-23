@@ -13,26 +13,23 @@ Components:
 """
 
 from .service import LocalAIService, InferenceRequest, InferenceResult
-from .model_manager import ModelManager, ModelConfig, ModelStatus
-from .inference_engine import InferenceEngine, InferenceConfig
-from .model_optimizer import ModelOptimizer, OptimizationConfig
+# TODO: Implement missing modules for full functionality
+# from .model_manager import ModelManager, ModelConfig, ModelStatus
+# from .inference_engine import InferenceEngine, InferenceConfig
+# from .model_optimizer import ModelOptimizer, OptimizationConfig
 
 __all__ = [
     # Main service
     "LocalAIService",
     "InferenceRequest",
     "InferenceResult",
-    
-    # Model management
-    "ModelManager",
-    "ModelConfig", 
-    "ModelStatus",
-    
-    # Inference engine
-    "InferenceEngine",
-    "InferenceConfig",
-    
-    # Model optimization
-    "ModelOptimizer",
-    "OptimizationConfig"
+
+    # TODO: Add when modules are implemented
+    # "ModelManager",
+    # "ModelConfig",
+    # "ModelStatus",
+    # "InferenceEngine",
+    # "InferenceConfig",
+    # "ModelOptimizer",
+    # "OptimizationConfig"
 ]

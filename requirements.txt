@@ -40,8 +40,8 @@ psutil>=5.9.0
 GPUtil>=1.4.0
 
 # Mobile and cross-platform
-kivy>=2.2.0  # Alternative to Flutter for Python
-kivymd>=1.1.1  # Material Design for Kivy
+kivy>=2.1.0,<2.3.0  # Alternative to Flutter for Python (Android compatible)
+kivymd>=1.1.1,<2.0.0  # Material Design for Kivy (stable version)
 plyer>=2.1.0  # Platform-specific features
 buildozer>=1.5.0  # Android APK builder
 python-for-android>=2023.1.29  # Python to Android compilation

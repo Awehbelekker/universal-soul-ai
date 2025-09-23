@@ -354,3 +354,28 @@ class IDependencyContainer(ABC):
     def is_registered(self, interface_type: type) -> bool:
         """Check if interface is registered"""
         pass
+
+
+# Export all public classes and interfaces
+__all__ = [
+    # Enums
+    "ComponentStatus",
+    "TaskPriority",
+    "AgentRole",
+
+    # Data classes
+    "HealthStatus",
+    "VoiceInput",
+    "VoiceOutput",
+    "UserContext",
+
+    # Abstract interfaces
+    "IHealthCheck",
+    "IAIEngine",
+    "IAgentOrchestrator",
+    "IVoiceInterface",
+    "IDataManager",
+    "ILocalAIService",
+    "IMobileOptimizer",
+    "IDependencyContainer"
+]

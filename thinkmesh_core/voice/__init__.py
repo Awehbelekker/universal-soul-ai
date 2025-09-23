@@ -17,18 +17,23 @@ Copyright (c) 2025 ThinkMesh AI Systems
 """
 
 from .voice_interface import VoiceInterface
-from .audio_processor import AudioProcessor
-from .voice_session import VoiceSession
+from .audio_processor import AudioProcessor, AudioConfig
+from .voice_session import VoiceSession, VoiceSessionConfig
 from .providers import (
     ElevenLabsTTSProvider,
-    DeepgramSTTProvider, 
+    DeepgramSTTProvider,
     SileroVADProvider
 )
+# Import VoiceConfig from config module for convenience
+from ..config import VoiceConfig
 
 __all__ = [
     "VoiceInterface",
-    "AudioProcessor", 
+    "VoiceConfig",
+    "AudioProcessor",
+    "AudioConfig",
     "VoiceSession",
+    "VoiceSessionConfig",
     "ElevenLabsTTSProvider",
     "DeepgramSTTProvider",
     "SileroVADProvider"

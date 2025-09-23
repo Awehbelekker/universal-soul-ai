@@ -73,8 +73,25 @@ class CoAct1AutomationEngine:
         self.gui_operator_agent = CoActGUIAgent()
         self.safety_sandbox = SecureExecutionSandbox()
         self.screen_analyzer = ScreenAnalyzer()
-        
-    async def execute_hybrid_task(self, task_description: str, 
+        self.is_initialized = False
+
+    async def initialize(self) -> None:
+        """Initialize the CoAct-1 automation engine"""
+        try:
+            logger.info("Initializing CoAct-1 automation engine...")
+
+            # Initialize components that need async setup
+            # Most components are initialized in __init__, but this provides
+            # a hook for any async initialization if needed in the future
+
+            self.is_initialized = True
+            logger.info("CoAct-1 automation engine initialized successfully")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize CoAct-1 automation engine: {e}")
+            raise
+
+    async def execute_hybrid_task(self, task_description: str,
                                  context: UserContext,
                                  platform: AutomationPlatform = AutomationPlatform.DESKTOP) -> HybridExecutionResult:
         """Execute task using CoAct-1's hybrid approach"""

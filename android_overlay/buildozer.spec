@@ -16,15 +16,15 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json,txt,md
 
 # (list) List of inclusions using pattern matching
-source.include_patterns = assets/*,models/*,config/*
+source.include_patterns = assets/*,core/*,ui/*,demo/*,tests/*
 
 # (str) Application versioning (method 1)
 version = 1.0.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-# Full feature set: Kivy + KivyMD + Android + networking (no heavy C aiohttp)
-requirements = kivy==2.1.0,kivymd==1.1.1,plyer,pyjnius,android,psutil,requests,websockets,python-dotenv
+# Full feature set: Kivy + KivyMD + Android + networking + thinkmesh_core dependencies
+requirements = kivy==2.1.0,kivymd==1.1.1,plyer,pyjnius,android,psutil,requests,websockets,python-dotenv,numpy,pillow
 
 # (str) Presplash of the application
 presplash.filename = assets/presplash.png

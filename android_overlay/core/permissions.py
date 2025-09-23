@@ -49,7 +49,7 @@ class AndroidPermissions:
     def _request_overlay_permission(self):
         """Request system overlay permission"""
         try:
-            from jnius import autoclass, cast
+            from jnius import autoclass
             
             logger.info("Requesting overlay permission...")
             

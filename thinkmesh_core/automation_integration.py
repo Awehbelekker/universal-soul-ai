@@ -28,12 +28,12 @@ from .automation import (
     ExecutionMethod
 )
 
-# Import sync components
+# Import sync components (only available ones)
 from .sync import (
     SyncEngine,
-    ContinuityManager,
-    DeviceContext,
-    SyncMethod
+    # ContinuityManager,  # TODO: Implement missing class
+    # DeviceContext,      # TODO: Implement missing class
+    # SyncMethod          # TODO: Implement missing class
 )
 
 logger = get_logger(__name__)

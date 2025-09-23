@@ -7,13 +7,24 @@ and Silero VAD for the highest quality voice experience.
 """
 
 import asyncio
-import aiohttp
-import numpy as np
+import io
+import wave
 from typing import Optional, Dict, Any, AsyncGenerator
 from abc import ABC, abstractmethod
 import logging
-import io
-import wave
+
+# Optional imports for full functionality
+try:
+    import aiohttp
+    import numpy as np
+    NETWORK_LIBS_AVAILABLE = True
+    ArrayType = np.ndarray
+except ImportError:
+    # Fallback for mobile/minimal environments
+    NETWORK_LIBS_AVAILABLE = False
+    aiohttp = None
+    np = None
+    ArrayType = Any
 
 from ..interfaces import VoiceInput, VoiceOutput
 from ..exceptions import ThinkMeshException, ErrorCode
@@ -432,7 +443,7 @@ class SileroVADProvider(BaseVoiceProvider):
                 "speech_duration": 0.0
             }
     
-    async def _energy_based_vad(self, audio_array: np.ndarray) -> Dict[str, Any]:
+    async def _energy_based_vad(self, audio_array: ArrayType) -> Dict[str, Any]:
         """Simple energy-based voice activity detection"""
         try:
             # Calculate RMS energy

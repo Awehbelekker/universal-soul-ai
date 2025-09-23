@@ -14,9 +14,15 @@ This creates the complete overlay experience for Android testing.
 import asyncio
 import time
 import json
+import sys
+from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, asdict
 import logging
+
+# Add parent directory to Python path for thinkmesh_core access
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 # Core overlay components
 from core.overlay_service import AndroidOverlayService, OverlayConfig, OverlayState
@@ -28,6 +34,8 @@ from ui.overlay_view import MinimalistOverlayView, OverlayTheme, OverlayState as
 from thinkmesh_core.voice import VoiceInterface, VoiceConfig
 from thinkmesh_core.automation import CoAct1AutomationEngine
 from thinkmesh_core.interfaces import UserContext
+
+THINKMESH_AVAILABLE = True
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +84,9 @@ class UniversalSoulOverlay:
         self.user_context = UserContext(
             user_id="overlay_user",
             preferences={"privacy_mode": True, "local_processing": True},
-            device_info={"platform": "android", "overlay_enabled": True}
+            session_data={"session_id": f"overlay_{int(time.time())}", "app_context": "universal_soul_overlay"},
+            device_info={"platform": "android", "overlay_enabled": True},
+            privacy_settings={"data_sharing": False, "analytics": False, "local_only": True}
         )
     
     async def initialize(self) -> bool:

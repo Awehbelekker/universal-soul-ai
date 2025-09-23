@@ -6,13 +6,25 @@ Comprehensive screen analysis using computer vision, OCR, and AI
 for intelligent interface understanding and automation planning.
 """
 
-import cv2
-import numpy as np
 from typing import Dict, Any, List, Optional, Tuple
 import logging
-from PIL import Image
 from dataclasses import dataclass
 import time
+
+# Optional imports for full functionality
+try:
+    import cv2
+    import numpy as np
+    from PIL import Image
+    VISION_LIBS_AVAILABLE = True
+    ArrayType = np.ndarray
+except ImportError:
+    # Fallback for mobile/minimal environments
+    VISION_LIBS_AVAILABLE = False
+    cv2 = None
+    np = None
+    Image = None
+    ArrayType = Any
 
 from ..logging import get_logger
 from ..exceptions import ThinkMeshException, ErrorCode
@@ -52,7 +64,7 @@ class ScreenAnalyzer:
         self.ui_detector = UIElementDetector()
         self.layout_analyzer = LayoutAnalyzer()
         
-    async def analyze_screen(self, screenshot: np.ndarray, 
+    async def analyze_screen(self, screenshot: ArrayType,
                            context: Optional[Dict[str, Any]] = None) -> ScreenAnalysisResult:
         """Perform comprehensive screen analysis"""
         start_time = time.time()
@@ -234,7 +246,7 @@ class OCREngine:
             logger.warning("easyocr not available")
             return False
     
-    async def extract_text_regions(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def extract_text_regions(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Extract text regions from screenshot"""
         
         if self.easyocr_available:
@@ -245,7 +257,7 @@ class OCREngine:
             logger.warning("No OCR engine available")
             return []
     
-    async def _extract_with_easyocr(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def _extract_with_easyocr(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Extract text using EasyOCR"""
         try:
             import easyocr
@@ -284,7 +296,7 @@ class OCREngine:
             logger.error(f"EasyOCR extraction failed: {e}")
             return []
     
-    async def _extract_with_tesseract(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def _extract_with_tesseract(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Extract text using Tesseract OCR"""
         try:
             import pytesseract
@@ -323,7 +335,7 @@ class UIElementDetector:
     def __init__(self):
         self.detection_methods = ['contour', 'template', 'edge']
         
-    async def detect_elements(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def detect_elements(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Detect UI elements using multiple methods"""
         
         all_elements = []
@@ -345,7 +357,7 @@ class UIElementDetector:
         
         return merged_elements
     
-    async def _detect_with_contours(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def _detect_with_contours(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Detect elements using contour analysis"""
         elements = []
         
@@ -401,7 +413,7 @@ class UIElementDetector:
         
         return elements
     
-    async def _detect_with_edges(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def _detect_with_edges(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Detect elements using edge detection"""
         elements = []
         
@@ -441,7 +453,7 @@ class UIElementDetector:
         
         return elements
     
-    async def _detect_with_templates(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def _detect_with_templates(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Detect elements using template matching"""
         # This would involve matching against common UI element templates
         # For now, return empty list as templates would need to be pre-defined
@@ -585,7 +597,7 @@ class UIElementDetector:
 class LayoutAnalyzer:
     """Analyzes screen layout structure"""
     
-    async def analyze_layout(self, screenshot: np.ndarray, 
+    async def analyze_layout(self, screenshot: ArrayType,
                            elements: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze the layout structure of the screen"""
         

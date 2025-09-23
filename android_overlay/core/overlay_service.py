@@ -10,11 +10,17 @@ Based on the 360° gesture integration guide and Universal Soul AI architecture.
 
 import asyncio
 import json
+import sys
 import time
+from pathlib import Path
 from typing import Dict, Any, Optional, List, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 from enum import Enum
 import logging
+
+# Add parent directory to Python path for thinkmesh_core access
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
 
 # Android-specific imports (would be actual Android APIs in production)
 ANDROID_AVAILABLE = False  # Define early to avoid NameError
@@ -76,54 +82,13 @@ if not ANDROID_AVAILABLE:
             return fn
         return decorator
 
-try:
-    # Try to import from thinkmesh_core if available
-    from thinkmesh_core.voice import VoiceInterface, VoiceConfig
-    THINKMESH_AVAILABLE = True
-except ImportError:
-    # Fallback: create minimal voice interface for mobile
-    THINKMESH_AVAILABLE = False
-    
-    class VoiceConfig:
-        def __init__(self, **kwargs):
-            self.enabled = kwargs.get('enabled', False)
-            self.language = kwargs.get('language', 'en-US')
-    
-    class VoiceInterface:
-        def __init__(self, config=None):
-            self.config = config or VoiceConfig()
-        
-        async def initialize(self):
-            return True
-        
-        async def start_listening(self):
-            pass
-        
-        async def stop_listening(self):
-            pass
-try:
-    # Try to import from thinkmesh_core if available
-    from thinkmesh_core.automation import CoAct1AutomationEngine
-    from thinkmesh_core.interfaces import UserContext
-    AUTOMATION_AVAILABLE = True
-except ImportError:
-    # Fallback: create minimal classes for mobile
-    AUTOMATION_AVAILABLE = False
-    
-    class CoAct1AutomationEngine:
-        def __init__(self, **kwargs):
-            pass
-        
-        async def initialize(self):
-            return True
-        
-        async def execute_action(self, action):
-            return {"status": "mock", "action": action}
-    
-    class UserContext:
-        def __init__(self, **kwargs):
-            self.app_name = kwargs.get('app_name', 'unknown')
-            self.screen_content = kwargs.get('screen_content', {})
+# Import from thinkmesh_core (now properly exported)
+from thinkmesh_core.voice import VoiceInterface, VoiceConfig
+THINKMESH_AVAILABLE = True
+# Import from thinkmesh_core (now properly exported)
+from thinkmesh_core.automation import CoAct1AutomationEngine
+from thinkmesh_core.interfaces import UserContext
+AUTOMATION_AVAILABLE = True
 
 logger = logging.getLogger(__name__)
 

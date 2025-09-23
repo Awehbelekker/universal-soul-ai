@@ -24,8 +24,10 @@ import logging
 try:
     from jnius import autoclass
     ANDROID_AVAILABLE = True
-except ImportError:
+except (ImportError, Exception) as e:
+    # Handle both ImportError and JAVA_HOME issues
     ANDROID_AVAILABLE = False
+    autoclass = None
 
 logger = logging.getLogger(__name__)
 

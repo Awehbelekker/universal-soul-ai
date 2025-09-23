@@ -8,13 +8,25 @@ Provides Warmwind-like capabilities with superior privacy and intelligence.
 """
 
 import asyncio
-import cv2
-import numpy as np
+import time
 from typing import Dict, Any, List, Optional, Tuple
 import logging
-from PIL import Image
-import time
 from dataclasses import dataclass
+
+# Optional imports for full functionality
+try:
+    import cv2
+    import numpy as np
+    from PIL import Image
+    VISION_LIBS_AVAILABLE = True
+    ArrayType = np.ndarray
+except ImportError:
+    # Fallback for mobile/minimal environments
+    VISION_LIBS_AVAILABLE = False
+    cv2 = None
+    np = None
+    Image = None
+    ArrayType = Any
 
 from ..interfaces import UserContext
 from ..exceptions import ThinkMeshException, ErrorCode
@@ -49,7 +61,7 @@ class NavigationExecutionResult:
     """Results of navigation execution"""
     task_completed: bool
     steps_executed: List[Dict[str, Any]]
-    final_screen_state: Optional[np.ndarray]
+    final_screen_state: Optional[ArrayType]
     confidence_score: float
     execution_time: float
 
@@ -125,7 +137,7 @@ class MobileNavigator:
                 ErrorCode.AUTOMATION_EXECUTION_FAILED
             )
     
-    async def _capture_mobile_screen(self) -> np.ndarray:
+    async def _capture_mobile_screen(self) -> ArrayType:
         """Capture mobile device screen"""
         try:
             # Try to import mss for screen capture
@@ -155,7 +167,7 @@ class MobileNavigator:
                 ErrorCode.SCREEN_CAPTURE_FAILED
             )
     
-    async def _fallback_screen_capture(self) -> np.ndarray:
+    async def _fallback_screen_capture(self) -> ArrayType:
         """Fallback screen capture method"""
         try:
             import pyautogui
@@ -329,7 +341,7 @@ class MobileScreenAnalyzer:
             logger.warning("pytesseract not available, OCR features disabled")
             return False
     
-    async def analyze_interface(self, screenshot: np.ndarray, 
+    async def analyze_interface(self, screenshot: ArrayType,
                                app_context: str, task_objective: str) -> MobileScreenAnalysis:
         """Analyze mobile interface elements"""
         
@@ -354,7 +366,7 @@ class MobileScreenAnalyzer:
             confidence_score=confidence_score
         )
     
-    async def _detect_ui_elements(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def _detect_ui_elements(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Detect UI elements using computer vision"""
         elements = []
         
@@ -390,7 +402,7 @@ class MobileScreenAnalyzer:
         
         return elements
     
-    async def _extract_text_elements(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def _extract_text_elements(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Extract text using OCR"""
         text_elements = []
         
@@ -423,7 +435,7 @@ class MobileScreenAnalyzer:
         
         return text_elements
     
-    async def _identify_interactive_elements(self, screenshot: np.ndarray, 
+    async def _identify_interactive_elements(self, screenshot: ArrayType,
                                            ui_elements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Identify interactive elements from UI elements"""
         interactive_elements = []
@@ -545,7 +557,7 @@ class UIElementDetector:
     def __init__(self):
         self.detection_confidence_threshold = 0.5
         
-    async def detect_elements(self, screenshot: np.ndarray) -> List[Dict[str, Any]]:
+    async def detect_elements(self, screenshot: ArrayType) -> List[Dict[str, Any]]:
         """Detect UI elements in screenshot"""
         
         # This is a simplified implementation

@@ -7,12 +7,24 @@ echo cancellation, and mobile optimization.
 """
 
 import asyncio
-import numpy as np
-import soundfile as sf
-import librosa
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, Union
 from dataclasses import dataclass
 import logging
+
+# Optional imports for full functionality
+try:
+    import numpy as np
+    import soundfile as sf
+    import librosa
+    AUDIO_LIBS_AVAILABLE = True
+    ArrayType = np.ndarray
+except ImportError:
+    # Fallback for mobile/minimal environments
+    AUDIO_LIBS_AVAILABLE = False
+    np = None
+    sf = None
+    librosa = None
+    ArrayType = Any  # Fallback type for when numpy is not available
 
 from ..interfaces import VoiceInput, VoiceOutput
 from ..exceptions import ThinkMeshException, ErrorCode
@@ -46,12 +58,17 @@ class AudioProcessor:
     def __init__(self, config: AudioConfig):
         self.config = config
         self.is_initialized = False
-        
-        # Audio processing state
-        self.noise_profile: Optional[np.ndarray] = None
-        self.echo_buffer: Optional[np.ndarray] = None
+
+        # Audio processing state (only if libraries available)
+        if AUDIO_LIBS_AVAILABLE:
+            self.noise_profile: Optional[ArrayType] = None
+            self.echo_buffer: Optional[ArrayType] = None
+        else:
+            self.noise_profile = None
+            self.echo_buffer = None
+
         self.gain_history: list = []
-        
+
         # Performance tracking
         self.processing_times: list = []
         self.quality_metrics: Dict[str, float] = {}
@@ -66,15 +83,20 @@ class AudioProcessor:
         """Initialize audio processing pipeline"""
         try:
             logger.info("Initializing audio processor...")
-            
+
+            if not AUDIO_LIBS_AVAILABLE:
+                logger.warning("Audio libraries not available - using minimal audio processing")
+                self.is_initialized = True
+                return
+
             # Initialize noise suppression
             if self.config.noise_suppression:
                 await self._initialize_noise_suppression()
-            
+
             # Initialize echo cancellation
             if self.config.echo_cancellation:
                 await self._initialize_echo_cancellation()
-            
+
             # Initialize auto gain control
             if self.config.auto_gain_control:
                 await self._initialize_auto_gain_control()
@@ -213,32 +235,36 @@ class AudioProcessor:
             logger.error(f"Failed to initialize auto gain control: {e}")
             raise
     
-    async def _bytes_to_array(self, audio_data: bytes, format: str) -> np.ndarray:
+    async def _bytes_to_array(self, audio_data: bytes, format: str) -> ArrayType:
         """Convert audio bytes to numpy array"""
         try:
+            if not AUDIO_LIBS_AVAILABLE:
+                # Return raw bytes as fallback
+                return audio_data
+
             # Use soundfile for robust audio format handling
             import io
             audio_io = io.BytesIO(audio_data)
             audio_array, _ = sf.read(audio_io, dtype='float32')
-            
+
             # Ensure correct sample rate
             if len(audio_array.shape) > 1:
                 audio_array = librosa.to_mono(audio_array.T)
-            
+
             # Resample if needed
             audio_array = librosa.resample(
-                audio_array, 
+                audio_array,
                 orig_sr=self.config.sample_rate,
                 target_sr=self.config.sample_rate
             )
-            
+
             return audio_array
-            
+
         except Exception as e:
             logger.error(f"Error converting bytes to array: {e}")
             raise
     
-    async def _array_to_bytes(self, audio_array: np.ndarray, format: str) -> bytes:
+    async def _array_to_bytes(self, audio_array: ArrayType, format: str) -> bytes:
         """Convert numpy array to audio bytes"""
         try:
             import io
@@ -249,7 +275,7 @@ class AudioProcessor:
             logger.error(f"Error converting array to bytes: {e}")
             raise
     
-    async def _apply_noise_suppression(self, audio: np.ndarray) -> np.ndarray:
+    async def _apply_noise_suppression(self, audio: ArrayType) -> ArrayType:
         """Apply spectral noise suppression"""
         try:
             # Simple spectral subtraction for noise suppression
@@ -282,7 +308,7 @@ class AudioProcessor:
             logger.warning(f"Noise suppression failed, using original audio: {e}")
             return audio
     
-    async def _apply_echo_cancellation(self, audio: np.ndarray) -> np.ndarray:
+    async def _apply_echo_cancellation(self, audio: ArrayType) -> ArrayType:
         """Apply acoustic echo cancellation"""
         try:
             # Simple echo cancellation using adaptive filtering
@@ -311,7 +337,7 @@ class AudioProcessor:
             logger.warning(f"Echo cancellation failed, using original audio: {e}")
             return audio
     
-    async def _apply_auto_gain_control(self, audio: np.ndarray) -> np.ndarray:
+    async def _apply_auto_gain_control(self, audio: ArrayType) -> ArrayType:
         """Apply automatic gain control"""
         try:
             # Calculate RMS level
@@ -346,7 +372,7 @@ class AudioProcessor:
             logger.warning(f"Auto gain control failed, using original audio: {e}")
             return audio
     
-    async def _enhance_output_audio(self, audio: np.ndarray) -> np.ndarray:
+    async def _enhance_output_audio(self, audio: ArrayType) -> ArrayType:
         """Enhance output audio quality"""
         try:
             # Apply gentle compression for better perceived loudness

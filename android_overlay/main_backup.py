@@ -8,6 +8,7 @@ This creates a Kivy-based mobile app with the overlay functionality.
 """
 
 import asyncio
+import logging
 import os
 import sys
 from pathlib import Path
@@ -15,6 +16,8 @@ from pathlib import Path
 # Add project root to Python path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
+
+logger = logging.getLogger(__name__)
 
 # Kivy configuration (must be set before importing kivy)
 os.environ['KIVY_WINDOW_ICON'] = str(project_root / 'assets' / 'icon.png')
@@ -39,17 +42,26 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 from kivymd.uix.toolbar import MDTopAppBar
 
-# Android-specific imports
+# Android-specific imports with fallbacks
+ANDROID_AVAILABLE = False
+request_permissions = None
+Permission = None
+
 if platform == 'android':
-    from android.permissions import request_permissions, Permission
-    from jnius import autoclass, PythonJavaClass, java_method
-    from android import activity
-    
-    # Android classes
-    PythonActivity = autoclass('org.kivy.android.PythonActivity')
-    Intent = autoclass('android.content.Intent')
-    Settings = autoclass('android.provider.Settings')
-    Uri = autoclass('android.net.Uri')
+    try:
+        from android.permissions import request_permissions, Permission  # type: ignore
+        from jnius import autoclass, PythonJavaClass, java_method  # type: ignore
+        from android import activity  # type: ignore
+
+        # Android classes
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        Intent = autoclass('android.content.Intent')
+        Settings = autoclass('android.provider.Settings')
+        Uri = autoclass('android.net.Uri')
+        ANDROID_AVAILABLE = True
+        logger.info("Android APIs loaded successfully")
+    except ImportError as e:
+        logger.warning(f"Android APIs not available: {e}")
 
 # Universal Soul AI components
 try:
@@ -57,7 +69,7 @@ try:
     from core.overlay_service import OverlayState
     from demo.overlay_demo import OverlayDemoRunner
 except ImportError as e:
-    Logger.warning(f"Could not import overlay components: {e}")
+    logger.warning(f"Could not import overlay components: {e}")
     UniversalSoulOverlay = None
 
 

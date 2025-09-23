@@ -8,13 +8,12 @@ feature flags, and runtime optimization parameters.
 
 import os
 import json
+import logging
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .logging import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -292,3 +291,16 @@ def set_config(config: ThinkMeshConfig) -> None:
     global _config
     _config = config
     logger.info("Global configuration updated")
+
+
+@dataclass
+class OrchestrationConfig:
+    """Agent orchestration configuration"""
+    max_concurrent_agents: int = 3
+    context_store_size_mb: int = 100
+    agent_timeout_seconds: int = 30
+    orchestrator_enabled: bool = True
+    explorer_agents: int = 1
+    coder_agents: int = 1
+    token_budget_multiplier: float = 3.0
+    quality_threshold: float = 0.95

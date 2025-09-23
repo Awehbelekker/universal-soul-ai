@@ -121,6 +121,15 @@ __all__ = [
     "ILocalAIService",
     "IMobileOptimizer",
 
+    # Core data structures
+    "UserContext",
+    "VoiceInput",
+    "VoiceOutput",
+    "HealthStatus",
+    "ComponentStatus",
+    "TaskPriority",
+    "AgentRole",
+
     # Automation system
     "AutomationSystemIntegrator",
     "initialize_automation_system",

@@ -10,53 +10,50 @@ complete data sovereignty and local-first architecture.
 from .sync_engine import (
     SyncEngine,
     SyncResult,
-    SyncConflictResolution,
-    DeviceSyncManager
+    # SyncConflictResolution,  # TODO: Implement missing class
+    # DeviceSyncManager        # TODO: Implement missing class
 )
 
-from .local_sync import (
-    LocalNetworkSync,
-    PeerDiscovery,
-    SecureLocalTransfer
-)
+# TODO: Implement missing modules for full functionality
+# from .local_sync import (
+#     LocalNetworkSync,
+#     PeerDiscovery,
+#     SecureLocalTransfer
+# )
 
-from .encrypted_backup import (
-    EncryptedCloudBackup,
-    BackupProvider,
-    BackupResult,
-    RestoreResult
-)
+# from .encrypted_backup import (
+#     EncryptedCloudBackup,
+#     BackupProvider,
+#     BackupResult,
+#     RestoreResult
+# )
 
-from .continuity_manager import (
-    ContinuityManager,
-    DeviceContext,
-    SessionTransfer,
-    ContextSynchronizer
-)
+# from .continuity_manager import (
+#     ContinuityManager,
+#     DeviceContext,
+#     SessionTransfer,
+#     ContextSynchronizer
+# )
 
 __all__ = [
-    # Core sync engine
+    # Core sync engine (available)
     'SyncEngine',
-    'SyncResult', 
-    'SyncConflictResolution',
-    'DeviceSyncManager',
-    
-    # Local network sync
-    'LocalNetworkSync',
-    'PeerDiscovery',
-    'SecureLocalTransfer',
-    
-    # Encrypted backup
-    'EncryptedCloudBackup',
-    'BackupProvider',
-    'BackupResult',
-    'RestoreResult',
-    
-    # Continuity management
-    'ContinuityManager',
-    'DeviceContext',
-    'SessionTransfer',
-    'ContextSynchronizer'
+    'SyncResult',
+
+    # TODO: Add when implemented
+    # 'SyncConflictResolution',
+    # 'DeviceSyncManager',
+    # 'LocalNetworkSync',
+    # 'PeerDiscovery',
+    # 'SecureLocalTransfer',
+    # 'EncryptedCloudBackup',
+    # 'BackupProvider',
+    # 'BackupResult',
+    # 'RestoreResult',
+    # 'ContinuityManager',
+    # 'DeviceContext',
+    # 'SessionTransfer',
+    # 'ContextSynchronizer'
 ]
 
 __version__ = "1.0.0"
