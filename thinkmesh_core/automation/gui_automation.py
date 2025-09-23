@@ -17,6 +17,7 @@ from ..interfaces import UserContext
 from ..exceptions import ThinkMeshException, ErrorCode
 from ..logging import get_logger
 from .screen_analyzer import ScreenAnalyzer, ScreenElement
+from .enhanced_error_recovery import AdvancedErrorRecoverySystem, EnhancedRecoveryResult
 
 logger = get_logger(__name__)
 
@@ -75,7 +76,7 @@ class GUIAutomationEngine:
         self.screen_analyzer = ScreenAnalyzer()
         self.automation_driver = self._create_automation_driver(platform)
         self.safety_checker = AutomationSafetyChecker()
-        self.error_recovery = ErrorRecoverySystem()
+        self.error_recovery = AdvancedErrorRecoverySystem(self.screen_analyzer)
         
     def _create_automation_driver(self, platform: AutomationPlatform):
         """Create platform-specific automation driver"""
@@ -128,16 +129,22 @@ class GUIAutomationEngine:
                         executed_actions += 1
                         logger.debug(f"Action {i+1}/{len(actions)} completed successfully")
                     else:
-                        # Attempt error recovery
+                        # Attempt enhanced error recovery
                         recovery_result = await self.error_recovery.attempt_recovery(
-                            action, action_result.error, context
+                            action, action_result.error, context, i + 1
                         )
-                        
+
                         if recovery_result.recovered:
                             executed_actions += 1
-                            logger.info(f"Action {i+1} recovered successfully")
+                            logger.info(f"Action {i+1} recovered successfully using strategy: {recovery_result.strategy}")
+
+                            # If alternative target was found, update action for retry
+                            if recovery_result.alternative_target:
+                                action.target = recovery_result.alternative_target
+                                logger.info(f"Updated action target with alternative element")
                         else:
-                            logger.error(f"Action {i+1} failed and could not be recovered")
+                            logger.error(f"Action {i+1} failed and could not be recovered. "
+                                       f"Attempted strategies: {', '.join(recovery_result.attempted_strategies)}")
                             break
                     
                     # Brief pause between actions

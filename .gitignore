@@ -104,6 +104,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# API Keys (security)
+api_keys.env
+**/api_keys.env
+
 # Spyder project settings
 .spyderproject
 .spyproject

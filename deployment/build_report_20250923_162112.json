@@ -1,0 +1,19 @@
+{
+  "build_timestamp": "2025-09-23T16:21:12.729176",
+  "build_duration": "N/A",
+  "success": false,
+  "errors": [
+    "APK build process failed: [WinError 2] The system cannot find the file specified"
+  ],
+  "log_entries": 16,
+  "apk_info": {
+    "version": "1.0.20250923.1621",
+    "features": [
+      "Multi-modal AI integration (Google Gemini)",
+      "Advanced automation engine",
+      "Voice processing capabilities",
+      "Overlay interface system",
+      "Local processing fallbacks"
+    ]
+  }
+}

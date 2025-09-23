@@ -1,0 +1,36 @@
+{
+  "timestamp": 1758628996.8249993,
+  "overall_success_rate": 0.0,
+  "target_achievement_rate": 0.0,
+  "successful_tests": 0,
+  "total_tests": 6,
+  "targets_achieved": 0,
+  "overall_status": "\u26a0\ufe0f NEEDS IMPROVEMENT",
+  "execution_time": 0.12838029861450195,
+  "detailed_results": {
+    "cross_platform_compatibility": {
+      "success": false,
+      "error": "UserContext.__init__() missing 1 required positional argument: 'privacy_settings'"
+    },
+    "error_recovery_system": {
+      "success": false,
+      "error": "UserContext.__init__() missing 1 required positional argument: 'privacy_settings'"
+    },
+    "confidence_scoring": {
+      "success": false,
+      "error": "UserContext.__init__() missing 1 required positional argument: 'privacy_settings'"
+    },
+    "task_completion_prediction": {
+      "success": false,
+      "error": "UserContext.__init__() missing 1 required positional argument: 'privacy_settings'"
+    },
+    "cogniflow_reasoning": {
+      "success": false,
+      "error": "UserContext.__init__() missing 1 required positional argument: 'privacy_settings'"
+    },
+    "enhanced_coact_performance": {
+      "success": false,
+      "error": "UserContext.__init__() missing 1 required positional argument: 'privacy_settings'"
+    }
+  }
+}

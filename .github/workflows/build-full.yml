@@ -55,6 +55,26 @@ jobs:
         pip install buildozer==1.5.0 cython==0.29.33 "python-for-android==2024.1.21"
         pip install kivy[base]==2.1.0 kivymd==1.1.1 plyer pyjnius
         pip install pillow requests numpy websockets psutil python-dotenv
+
+        # Install Multi-Modal AI dependencies for enhanced automation
+        echo "Installing Multi-Modal AI dependencies..."
+        pip install openai==1.3.0
+        pip install anthropic==0.7.0
+        pip install google-generativeai==0.3.0
+        pip install transformers==4.35.0
+
+        # Install enhanced automation dependencies
+        echo "Installing enhanced automation dependencies..."
+        pip install opencv-python-headless==4.8.1.78
+        pip install pytesseract==0.3.10
+        pip install easyocr==1.7.0
+        pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
+        pip install torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cpu
+
+        # Install voice processing dependencies
+        echo "Installing voice processing dependencies..."
+        pip install elevenlabs==0.2.26
+        pip install deepgram-sdk==3.2.6
         
     - name: Install Android SDK and NDK
       run: |
